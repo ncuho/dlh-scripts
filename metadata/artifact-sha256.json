@@ -1,0 +1,26 @@
+{
+  "description": "Selected DLH runtime and administration artifacts",
+  "algorithm": "sha256",
+  "files": {
+    "runtime/airflow_oil_wave2.py": "2d94b4b6b64e1dd4aca37f599abde197b1a4e607c1a8a88f719645bbbcede0f6",
+    "runtime/bounded_delta.py": "fdefd5c3ef74c13ac5acaddad7f11ddf917d36ad91eb9b2e181802b0f75d557c",
+    "runtime/cedrus_release_runner.py": "88b41a2eec2e851bcd54000ba92f5bcc9bb9bd4be62a84ee2d323845c69a8267",
+    "runtime/dq_sql.py": "404c43352cb12fd75e196aab4d5b2e1d427fbe0e40ec20d6a47c3e19a401a13f",
+    "runtime/fence_controller.py": "e472774b2fa5914303d2b457ec1999a1ade6d687d8d12010970b840d0041edac",
+    "runtime/fence_probe_socket.py": "2454c7c9e27a3f933fa04ad8e76e5363bf1b96b3aae0b3857919fcd40cd25622",
+    "runtime/grant_serving.py": "3397e231d145104e68cf9914bf80e6ef142e793182888628abe81de905e4b082",
+    "runtime/publish_dataset.py": "59618c1ed1b3d930936fa86a06a7b18cdb6a3b04b3c32bcf81b7c90bec0b5ab3",
+    "runtime/runtime_catalog.py": "36a2655851892fc85faf5234c3a731e3d2997e622f203739fcb5ca47d7c3350a",
+    "runtime/source_fence.py": "1af36c7c2b4fd50f779a2fba4512e8146e5368403357517b0c8f46e5ca0ae986",
+    "runtime/sql_plan.py": "ac74052fd06f7b83b5380a77088aff36e5796334772b82916f59acbca920ebd6",
+    "runtime/superset_auth.py": "7e9f32263ebf7edbe27ab143b58c09991b52d697c0deeaac748ceb5c3a2cf1e5",
+    "ops/catalog_launcher_overlay.py": "ca31601adcb9f23485bd0d3d5b8b19120eda59f9891b6cee7e8efc8bb309cb96",
+    "ops/configure_fence_relay.py": "125b307da0cf634504799ab4f0e8da3ad5d16ae1e489e0ba7e6f5c3506b92c70",
+    "ops/configure_lakekeeper_verifier.py": "edaa3cd166d3db90c182ca723a687d3e4ef0ced0e39c34f7213ac1578ea7e5e7",
+    "ops/configure_runtime_tls.py": "8bbd601419be7df7db9bb6a210c3b1e73350fe7001bc144cf41662573ba1a61b",
+    "ops/deploy_catalog_overlay.py": "7fd5522f9a6586471a8c1651eec26bcafefc587fde6477eb2ed0650c53d62dc7",
+    "ops/lakekeeper_roles.py": "d293c1384a8cf6fb9b8cace44677f2071d558c7183996f651967cb0b86aa4a1b",
+    "ops/lakekeeper_verifier.py": "b83dce44e6dc1c0e53234ad1a138d78221e856fd0ef0f355a4a89e1a3a46f77a",
+    "metadata/oil-event-json-schema.json": "f49ffb37618658c845cc88e40c581c6f2e9b42d9043505113596b59480d99059"
+  }
+}

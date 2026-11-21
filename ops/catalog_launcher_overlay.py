@@ -44,7 +44,9 @@ def _resolve_token():
         return JWT, False  # static token, no refresh
     if USERNAME and PASSWORD:
         return _login()["accessToken"], True
-    raise ValueError("Either OPENMETADATA_JWT_TOKEN or OPENMETADATA_USERNAME+PASSWORD must be set")
+    raise ValueError(
+        "Either OPENMETADATA_JWT_TOKEN or OPENMETADATA_USERNAME+PASSWORD must be set"
+    )
 
 
 api_token, can_refresh = _resolve_token()
@@ -89,8 +91,12 @@ log.info("Total registered tools: %d", registered_count)
 
 
 def _om(method, endpoint, params=None, json_data=None):
-    headers = {"Content-Type": "application/json-patch+json"} if method == "PATCH" else None
-    return client._make_request(method, endpoint, params=params, json_data=json_data, headers=headers)
+    headers = (
+        {"Content-Type": "application/json-patch+json"} if method == "PATCH" else None
+    )
+    return client._make_request(
+        method, endpoint, params=params, json_data=json_data, headers=headers
+    )
 
 
 def _jd(obj):
@@ -142,7 +148,13 @@ def get_glossary_term_ontology(fqn: str) -> str:
 def list_glossary_terms_ontology(glossary_fqn: str, limit: int = 100) -> str:
     """List glossary terms of a glossary with their semantic relations."""
     fields = "relatedTerms,references,synonyms,conceptMappings,owners"
-    return _jd(_om("GET", "glossaryTerms", params={"glossary": glossary_fqn, "fields": fields, "limit": limit}))
+    return _jd(
+        _om(
+            "GET",
+            "glossaryTerms",
+            params={"glossary": glossary_fqn, "fields": fields, "limit": limit},
+        )
+    )
 
 
 def _resolve_term_id(ref: str):
@@ -168,10 +180,26 @@ def set_term_relations(fqn: str, related_terms: list) -> str:
         elif rt.get("name"):
             tid = _resolve_term_id(rt["name"])
             if tid:
-                value.append({"relationType": rel_type, "term": {"id": tid, "type": "glossaryTerm"}})
+                value.append(
+                    {
+                        "relationType": rel_type,
+                        "term": {"id": tid, "type": "glossaryTerm"},
+                    }
+                )
         elif rt.get("id"):
-            value.append({"relationType": rel_type, "term": {"id": rt["id"], "type": "glossaryTerm"}})
-    return _jd(_om("PATCH", "glossaryTerms/name/" + fqn, json_data=[{"op": "add", "path": "/relatedTerms", "value": value}]))
+            value.append(
+                {
+                    "relationType": rel_type,
+                    "term": {"id": rt["id"], "type": "glossaryTerm"},
+                }
+            )
+    return _jd(
+        _om(
+            "PATCH",
+            "glossaryTerms/name/" + fqn,
+            json_data=[{"op": "add", "path": "/relatedTerms", "value": value}],
+        )
+    )
 
 
 def update_glossary_term(
@@ -186,7 +214,9 @@ def update_glossary_term(
     if description:
         patch.append({"op": "add", "path": "/description", "value": description})
     if concept_mappings is not None:
-        patch.append({"op": "add", "path": "/conceptMappings", "value": concept_mappings})
+        patch.append(
+            {"op": "add", "path": "/conceptMappings", "value": concept_mappings}
+        )
     if references is not None:
         patch.append({"op": "add", "path": "/references", "value": references})
     if synonyms is not None:
@@ -194,11 +224,31 @@ def update_glossary_term(
     return _jd(_om("PATCH", "glossaryTerms/name/" + fqn, json_data=patch))
 
 
-app.add_tool(create_glossary_term, name="create_glossary_term", description="Create a glossary term (ontology concept) with relations/references/synonyms/conceptMappings.")
-app.add_tool(get_glossary_term_ontology, name="get_glossary_term_ontology", description="Read a glossary term by FQN with semantic relations (relatedTerms, references, synonyms, conceptMappings).")
-app.add_tool(list_glossary_terms_ontology, name="list_glossary_terms_ontology", description="List glossary terms of a glossary with semantic relations.")
-app.add_tool(set_term_relations, name="set_term_relations", description="Set typed relations (broader/narrower/synonym/relatedTo) between glossary terms.")
-app.add_tool(update_glossary_term, name="update_glossary_term", description="Update semantic fields (description/conceptMappings/references/synonyms) of a glossary term by FQN.")
+app.add_tool(
+    create_glossary_term,
+    name="create_glossary_term",
+    description="Create a glossary term (ontology concept) with relations/references/synonyms/conceptMappings.",
+)
+app.add_tool(
+    get_glossary_term_ontology,
+    name="get_glossary_term_ontology",
+    description="Read a glossary term by FQN with semantic relations (relatedTerms, references, synonyms, conceptMappings).",
+)
+app.add_tool(
+    list_glossary_terms_ontology,
+    name="list_glossary_terms_ontology",
+    description="List glossary terms of a glossary with semantic relations.",
+)
+app.add_tool(
+    set_term_relations,
+    name="set_term_relations",
+    description="Set typed relations (broader/narrower/synonym/relatedTo) between glossary terms.",
+)
+app.add_tool(
+    update_glossary_term,
+    name="update_glossary_term",
+    description="Update semantic fields (description/conceptMappings/references/synonyms) of a glossary term by FQN.",
+)
 
 # Bind 0.0.0.0 so the pod is reachable; host/port configurable via env.
 # stateless_http + json_response: match the Trino MCP server (avoids 421 session errors
@@ -216,43 +266,78 @@ app.settings.port = port
 # VK demo extension: bounded typed lineage deletion using native OM endpoint.
 from uuid import UUID
 
-def delete_lineage_by_id(from_type: str, from_id: str, to_type: str, to_id: str):
-    allowed = {'table', 'chart', 'dashboard', 'pipeline', 'topic'}
-    if from_type not in allowed or to_type not in allowed:
-        raise ValueError('unsupported lineage entity type')
-    source = str(UUID(from_id)); target = str(UUID(to_id))
-    if from_type != 'table' or to_type != 'chart':
-        raise ValueError('only table to chart removal is supported')
-    graph = _om('GET', 'lineage/'+from_type+'/'+source, params={'upstreamDepth': 0, 'downstreamDepth': 1})
-    if not any(e.get('fromEntity') == source and e.get('toEntity') == target for e in graph.get('downstreamEdges', [])):
-        return _jd({'status':'absent'})
-    _om('DELETE', 'lineage/'+from_type+'/'+source+'/'+to_type+'/'+target)
-    graph = _om('GET', 'lineage/'+from_type+'/'+source, params={'upstreamDepth': 0, 'downstreamDepth': 1})
-    if any(e.get('fromEntity') == source and e.get('toEntity') == target for e in graph.get('downstreamEdges', [])):
-        raise RuntimeError('lineage delete verification failed')
-    return _jd({'status':'deleted'})
 
-app.add_tool(delete_lineage_by_id, name='delete_lineage_by_id', description='Remove one verified table-to-chart lineage edge by UUID; idempotent.')
+def delete_lineage_by_id(from_type: str, from_id: str, to_type: str, to_id: str):
+    allowed = {"table", "chart", "dashboard", "pipeline", "topic"}
+    if from_type not in allowed or to_type not in allowed:
+        raise ValueError("unsupported lineage entity type")
+    source = str(UUID(from_id))
+    target = str(UUID(to_id))
+    if from_type != "table" or to_type != "chart":
+        raise ValueError("only table to chart removal is supported")
+    graph = _om(
+        "GET",
+        "lineage/" + from_type + "/" + source,
+        params={"upstreamDepth": 0, "downstreamDepth": 1},
+    )
+    if not any(
+        e.get("fromEntity") == source and e.get("toEntity") == target
+        for e in graph.get("downstreamEdges", [])
+    ):
+        return _jd({"status": "absent"})
+    _om("DELETE", "lineage/" + from_type + "/" + source + "/" + to_type + "/" + target)
+    graph = _om(
+        "GET",
+        "lineage/" + from_type + "/" + source,
+        params={"upstreamDepth": 0, "downstreamDepth": 1},
+    )
+    if any(
+        e.get("fromEntity") == source and e.get("toEntity") == target
+        for e in graph.get("downstreamEdges", [])
+    ):
+        raise RuntimeError("lineage delete verification failed")
+    return _jd({"status": "deleted"})
+
+
+app.add_tool(
+    delete_lineage_by_id,
+    name="delete_lineage_by_id",
+    description="Remove one verified table-to-chart lineage edge by UUID; idempotent.",
+)
+
 
 # Scoped status description update for the demo dashboard and its four charts.
 def set_demo_bi_description(entity_type: str, entity_id: str, description: str):
     allowed = {
-        'dashboard': {'221e12ad-2f7d-4c63-9059-73cb92f5bc5b'},
-        'chart': {'fdb22dcc-ebba-4aa3-b066-537fb7d21e2a','800c4e2e-75c7-46f7-a822-0fad1f1a8861',
-                  '1afdc652-7398-4962-a3c8-5bc6fe9a960a','6022700e-2b3b-4e84-83db-eee76ff08989'},
+        "dashboard": {"221e12ad-2f7d-4c63-9059-73cb92f5bc5b"},
+        "chart": {
+            "fdb22dcc-ebba-4aa3-b066-537fb7d21e2a",
+            "800c4e2e-75c7-46f7-a822-0fad1f1a8861",
+            "1afdc652-7398-4962-a3c8-5bc6fe9a960a",
+            "6022700e-2b3b-4e84-83db-eee76ff08989",
+        },
     }
     ident = str(UUID(entity_id))
     if entity_type not in allowed or ident not in allowed[entity_type]:
-        raise ValueError('unsupported demo BI entity')
+        raise ValueError("unsupported demo BI entity")
     if not isinstance(description, str) or not 1 <= len(description) <= 1000:
-        raise ValueError('invalid description')
-    endpoint = ('dashboards/' if entity_type == 'dashboard' else 'charts/') + ident
-    _om('PATCH', endpoint, json_data=[{'op':'add','path':'/description','value':description}])
-    result = _om('GET', endpoint)
-    if result.get('description') != description:
-        raise RuntimeError('description readback failed')
-    return _jd({'status':'updated'})
+        raise ValueError("invalid description")
+    endpoint = ("dashboards/" if entity_type == "dashboard" else "charts/") + ident
+    _om(
+        "PATCH",
+        endpoint,
+        json_data=[{"op": "add", "path": "/description", "value": description}],
+    )
+    result = _om("GET", endpoint)
+    if result.get("description") != description:
+        raise RuntimeError("description readback failed")
+    return _jd({"status": "updated"})
 
-app.add_tool(set_demo_bi_description, name='set_demo_bi_description', description='Update verified demo dashboard/chart description by scoped UUID.')
+
+app.add_tool(
+    set_demo_bi_description,
+    name="set_demo_bi_description",
+    description="Update verified demo dashboard/chart description by scoped UUID.",
+)
 
 app.run(transport="streamable-http")

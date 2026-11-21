@@ -1,0 +1,230 @@
+{
+  "id": 5,
+  "dashboard_title": "Добыча нефти по месторождениям · Lakehouse",
+  "slug": "oil-field-production-dlh",
+  "published": true,
+  "css": "div[class*=\"big_number\"] .header-line { font-size: 3rem !important; font-weight: 700; margin-bottom: 0 !important; }",
+  "position_json": {
+    "DASHBOARD_VERSION_KEY": "v2",
+    "ROOT_ID": {
+      "id": "ROOT_ID",
+      "type": "ROOT",
+      "children": [
+        "GRID_ID"
+      ]
+    },
+    "GRID_ID": {
+      "id": "GRID_ID",
+      "type": "GRID",
+      "children": [
+        "ROW-1",
+        "ROW-2",
+        "ROW-3"
+      ],
+      "parents": [
+        "ROOT_ID"
+      ]
+    },
+    "ROW-1": {
+      "id": "ROW-1",
+      "type": "ROW",
+      "children": [
+        "CHART-15",
+        "CHART-16"
+      ],
+      "parents": [
+        "ROOT_ID",
+        "GRID_ID"
+      ],
+      "meta": {
+        "background": "BACKGROUND_TRANSPARENT"
+      }
+    },
+    "ROW-2": {
+      "id": "ROW-2",
+      "type": "ROW",
+      "children": [
+        "CHART-17"
+      ],
+      "parents": [
+        "ROOT_ID",
+        "GRID_ID"
+      ],
+      "meta": {
+        "background": "BACKGROUND_TRANSPARENT"
+      }
+    },
+    "ROW-3": {
+      "id": "ROW-3",
+      "type": "ROW",
+      "children": [
+        "CHART-18"
+      ],
+      "parents": [
+        "ROOT_ID",
+        "GRID_ID"
+      ],
+      "meta": {
+        "background": "BACKGROUND_TRANSPARENT"
+      }
+    },
+    "CHART-15": {
+      "id": "CHART-15",
+      "type": "CHART",
+      "children": [],
+      "parents": [
+        "ROOT_ID",
+        "GRID_ID",
+        "ROW-1"
+      ],
+      "meta": {
+        "chartId": 15,
+        "sliceName": "Добыча, т",
+        "width": 6,
+        "height": 16
+      }
+    },
+    "CHART-16": {
+      "id": "CHART-16",
+      "type": "CHART",
+      "children": [],
+      "parents": [
+        "ROOT_ID",
+        "GRID_ID",
+        "ROW-1"
+      ],
+      "meta": {
+        "chartId": 16,
+        "sliceName": "Активные скважино-дни",
+        "width": 6,
+        "height": 16
+      }
+    },
+    "CHART-17": {
+      "id": "CHART-17",
+      "type": "CHART",
+      "children": [],
+      "parents": [
+        "ROOT_ID",
+        "GRID_ID",
+        "ROW-2"
+      ],
+      "meta": {
+        "chartId": 17,
+        "sliceName": "Динамика добычи по месторождениям",
+        "width": 12,
+        "height": 32
+      }
+    },
+    "CHART-18": {
+      "id": "CHART-18",
+      "type": "CHART",
+      "children": [],
+      "parents": [
+        "ROOT_ID",
+        "GRID_ID",
+        "ROW-3"
+      ],
+      "meta": {
+        "chartId": 18,
+        "sliceName": "Показатели по месторождениям",
+        "width": 12,
+        "height": 32
+      }
+    }
+  },
+  "json_metadata": {
+    "color_scheme": "supersetColors",
+    "refresh_frequency": 0,
+    "timed_refresh_immune_slices": [],
+    "expanded_slices": {},
+    "label_colors": {},
+    "shared_label_colors": [],
+    "map_label_colors": {},
+    "color_scheme_domain": [],
+    "cross_filters_enabled": true,
+    "native_filter_configuration": [
+      {
+        "id": "NATIVE_FILTER-5316890a-dd81-4e7b-89aa-410bf82fae92",
+        "name": "Регион",
+        "filterType": "filter_select",
+        "type": "NATIVE_FILTER",
+        "targets": [
+          {
+            "datasetId": 6,
+            "column": {
+              "name": "region"
+            }
+          }
+        ],
+        "controlValues": {
+          "enableEmptyFilter": false,
+          "multiSelect": true,
+          "searchAllOptions": false,
+          "inverseSelection": false,
+          "defaultToFirstItem": false
+        },
+        "defaultDataMask": {
+          "extraFormData": {},
+          "filterState": {},
+          "ownState": {}
+        },
+        "cascadeParentIds": [],
+        "scope": {
+          "rootPath": [
+            "ROOT_ID"
+          ],
+          "excluded": []
+        },
+        "chartsInScope": [
+          15,
+          16,
+          17,
+          18
+        ],
+        "tabsInScope": []
+      },
+      {
+        "id": "NATIVE_FILTER-20d4429e-4b00-402f-b8a2-ea08c3a2d23d",
+        "name": "Месторождение",
+        "filterType": "filter_select",
+        "type": "NATIVE_FILTER",
+        "targets": [
+          {
+            "datasetId": 6,
+            "column": {
+              "name": "field_name"
+            }
+          }
+        ],
+        "controlValues": {
+          "enableEmptyFilter": false,
+          "multiSelect": true,
+          "searchAllOptions": false,
+          "inverseSelection": false,
+          "defaultToFirstItem": false
+        },
+        "defaultDataMask": {
+          "extraFormData": {},
+          "filterState": {},
+          "ownState": {}
+        },
+        "cascadeParentIds": [],
+        "scope": {
+          "rootPath": [
+            "ROOT_ID"
+          ],
+          "excluded": []
+        },
+        "chartsInScope": [
+          15,
+          16,
+          17,
+          18
+        ],
+        "tabsInScope": []
+      }
+    ],
+    "show_native_filters": true
+  }
+}

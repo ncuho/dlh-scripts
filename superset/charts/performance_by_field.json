@@ -4,6 +4,7 @@
   "viz_type": "table",
   "datasource_id": 8,
   "datasource_type": "table",
+  "description": null,
   "params": {
     "datasource": "8__table",
     "granularity_sqla": "production_date",

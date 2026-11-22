@@ -8,6 +8,7 @@
   "sql": null,
   "normalize_columns": false,
   "always_filter_main_dttm": false,
+  "description": "Дневная добыча и часы простоев, Lakehouse. До подтверждённой публикации используется пустой serving-буфер.",
   "columns": [
     {
       "column_name": "production_date",

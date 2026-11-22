@@ -8,6 +8,7 @@
   "sql": null,
   "normalize_columns": false,
   "always_filter_main_dttm": true,
+  "description": "Дневная добыча по месторождениям, Lakehouse. Опубликован зафиксированный baseline; автоматическое обновление не включено.",
   "columns": [
     {
       "column_name": "production_date",

@@ -1,6 +1,6 @@
 {
   "id": 5,
-  "dashboard_title": "Добыча нефти по месторождениям · Lakehouse",
+  "dashboard_title": "Добыча по месторождениям · Lakehouse",
   "slug": "oil-field-production-dlh",
   "published": true,
   "css": "div[class*=\"big_number\"] .header-line { font-size: 3rem !important; font-weight: 700; margin-bottom: 0 !important; }",

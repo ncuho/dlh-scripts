@@ -9,7 +9,9 @@ import re
 SCHEMA = re.compile(r"^oil_r_[a-z0-9_]{1,42}$")
 
 
-def plan(schema):
+def plan(schema, chain="performance"):
+    if chain not in ("production", "performance"):
+        raise ValueError("unknown business chain")
     if not SCHEMA.fullmatch(schema):
         raise ValueError("invalid release schema")
     t = "dlh." + schema
@@ -347,6 +349,9 @@ FROM
 """,
         )
     )
+    if chain == "production":
+        excluded = {"hub_downtime", "link_downtime_well", "sat_downtime", "dim_downtime_reason", "fact_downtime_interval", "agg_field_downtime_day", "field_performance"}
+        p = [(n, q) for n, q in p if n not in excluded]
     return [
         (
             name,

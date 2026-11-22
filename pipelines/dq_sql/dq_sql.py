@@ -6,11 +6,11 @@ A zero result for every query is necessary, not proof of a frozen source cut.
 from sql_plan import SCHEMA
 
 
-def gates(schema):
+def gates(schema, chain="performance"):
     if not SCHEMA.fullmatch(schema):
         raise ValueError("invalid release schema")
     t = "dlh." + schema
-    return [
+    checks = [
         (
             "event_id_conflict",
             f"SELECT count(*) AS n FROM (SELECT json_extract_scalar(document,'$.event_id') AS event_id FROM {t}.canonical_input GROUP BY 1 HAVING count(DISTINCT document)>1)",
@@ -63,13 +63,19 @@ def gates(schema):
         ),
     ]
 
+    if chain == "production":
+        checks = [(n, q.replace(",'downtime'", "")) for n, q in checks if n not in {"downtime_fact_coverage", "bad_downtime", "overlap"}]
+    return checks
 
-def comparisons(schema):
+
+def comparisons(schema, chain="performance"):
     if not SCHEMA.fullmatch(schema):
         raise ValueError("invalid release schema")
     # Compare complete event history, not just a few business aggregates. The
     # target has exactly one copy of each byte-identical replay by construction.
     source_events = "SELECT event_document AS document FROM greenplum_gp.oil_dds.event WHERE event_type IN ('field','well','production_day','downtime')"
+    if chain == "production":
+        source_events = source_events.replace(",'downtime'", "")
     target_events = "SELECT document FROM dlh." + schema + ".canonical_event"
     result = [
         (
@@ -95,6 +101,8 @@ def comparisons(schema):
         "agg_field_downtime_day",
         "field_performance",
     ]
+    if chain == "production":
+        targets = targets[:4]
     for name in targets:
         source = "v_field_performance" if name == "field_performance" else name
         a = "SELECT * FROM greenplum_gp.oil_mart." + source

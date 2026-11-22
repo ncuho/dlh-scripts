@@ -35,6 +35,9 @@ NAME = re.compile(r"^[a-z][a-z0-9_]{0,62}$")
 
 def execute(**context):
     conf = context["dag_run"].conf or {}
+    chain = conf.get("chain", "performance")
+    if chain not in ("production", "performance"):
+        raise ValueError("invalid business chain")
     action = conf.get("action")
     schema = conf.get("schema", "")
     if action not in (
@@ -79,6 +82,8 @@ def execute(**context):
                 initial_evidence = json.loads(
                     (base / (initial_schema + ".evidence.json")).read_text()
                 )
+                if initial.get("chain", "performance") != chain:
+                    raise ValueError("initial belongs to a different business chain")
                 if (
                     initial_evidence.get("status") != "ready"
                     or initial.get("mode") != "initial"
@@ -87,7 +92,7 @@ def execute(**context):
                 ):
                     raise ValueError("initial baseline is not verified ready")
             if not resume:
-                x = {"cut_id": uuid.uuid4().hex, "_capture": True}
+                x = {"cut_id": uuid.uuid4().hex, "_capture": True, "chain": chain}
             if initial:
                 x.update(
                     _initial_partitions=initial["partitions"],
@@ -147,6 +152,7 @@ def execute(**context):
                             "CREATE TABLE "
                             + baseline
                             + " WITH (format='PARQUET') AS SELECT * FROM greenplum_gp.oil_dds.event"
+                            + (" WHERE event_type IN ('field','well','production_day')" if chain == "production" else "")
                         )
                         baseline_snapshot = snap(m, baseline)
                     else:

@@ -369,3 +369,10 @@ Release SQL содержит параметры и пример namespace; ег�
 | [superset/datasets/production](superset/datasets/production/) | Dataset 6 читает oil_mart.agg_field_day. Определяет временное поле, колонки и доступные метрики для графиков. |
 
 Смежный репозиторий: [Greenplum](https://github.com/ncuho/dwh-greenplum-scripts).
+
+
+## Начальное состояние миграции
+
+22 ноября 2026 целевые бизнес-таблицы и прежние целевые BI/Catalog объекты удалены. В репозитории сохранён подготовленный код двух цепочек, наличие кода не означает перенесённые данные. Production строит отдельный выпуск из 14 таблиц, performance — из 21; baseline и raw находятся вне этого числа. Целевой dataset/dashboard создаётся после сверки и выдачи SELECT, числовые ID определяются публикацией. Исходный GP продолжает работать.
+
+`operations/deploy_release` публикует DAG и библиотеки в действующий S3-префикс Airflow. Расчётный маршрут — CedrusData Engine/Trino, а не Spark; Spark-код является альтернативной реализацией для отдельной проверки.

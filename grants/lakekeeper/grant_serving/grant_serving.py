@@ -11,7 +11,8 @@ schema = x.get("schema", "")
 snapshots = x.get("snapshots", {})
 if x.get("status") != "ready" or not re.fullmatch(r"oil_r_[a-z0-9_]{1,42}", schema):
     raise SystemExit("release not ready or invalid schema")
-for n in ("agg_field_day", "field_performance"):
+serving = ("agg_field_day",) if x.get("chain") == "production" else ("agg_field_day", "field_performance")
+for n in serving:
     if type(snapshots.get(n)) is not int or snapshots[n] <= 0:
         raise SystemExit("missing serving snapshot")
 role = "01a1fffd-bdc0-7c31-8738-c6d32c823dc7"
@@ -45,7 +46,7 @@ def req(path, body=None):
 
 
 results = []
-for name in ("agg_field_day", "field_performance"):
+for name in serving:
     status, d = req(f"/catalog/v1/{w}/namespaces/{schema}/tables/{name}")
     if (
         status != 200

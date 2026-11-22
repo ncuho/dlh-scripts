@@ -1,11 +1,3 @@
-# runtime_catalog
+# Регистрация фактически построенного выпуска
 
-Регистрирует только фактически созданный и сверенный release. После подтверждённой публикации обновляет lineage к графикам и описание текущего источника.
-
-Исходный код: [runtime_catalog.py](runtime_catalog.py).
-
-## Статус сущности
-
-- **GitHub:** код и описание находятся в этой папке.
-- **Data Catalog:** Это код обслуживания каталога; отдельная бизнес-карточка Python-модуля не создаётся.
-- **Lakehouse:** Runtime registration и MCP overlay установлены; обслуживают целевой выпуск и BI lineage.
+Ready evidence и manifest определяют chain и точный состав: 14 или 21 таблица, baseline и raw. Скрипт сверяет snapshots, регистрирует таблицы и column lineage фактически исполненного SQL, связывая обработку с pipeline webinar_airflow.oil_wave2_release. Сначала подготовьте инфраструктурные карточки pipeline через native prepare. Публикацию новых BI ID выполняет актуальный publisher.

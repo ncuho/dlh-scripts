@@ -1,11 +1,3 @@
-# grant_serving
+# SELECT на опубликованный выпуск
 
-Admin-утилита назначения reader SELECT на две serving-таблицы конкретного готового release; проверяет snapshots. Основной операторский способ — LakeKeeper UI.
-
-Исходный код: [grant_serving.py](grant_serving.py).
-
-## Статус сущности
-
-- **GitHub:** код и описание находятся в этой папке.
-- **Data Catalog:** Управляются нативными GP/Kafka/CIAM/LakeKeeper механизмами; отдельной карточки grant в Data Catalog нет.
-- **Lakehouse:** GP GRANT не копируются буквально. Целевые CIAM-backed роли и LakeKeeper permissions настроены отдельно.
+Скрипт принимает ready evidence через stdin внутри штатного token proxy и назначает существующей CIAM-backed роли oil_dlh_reader точечный SELECT. Для production — agg_field_day, для performance — agg_field_day и field_performance. UUID и snapshot читаются заново из LakeKeeper. Токен не выводится, OpenFGA напрямую не редактируется.

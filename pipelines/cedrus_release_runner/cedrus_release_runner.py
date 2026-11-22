@@ -188,6 +188,10 @@ def main():
         for prefix in ("baseline", "delta"):
             if snap(m, x[prefix + "_table"]) != x[prefix + "_snapshot"]:
                 raise RuntimeError(prefix + " snapshot changed")
+        chain = x.get("chain", "performance")
+        if chain not in ("production", "performance"):
+            raise ValueError("invalid chain")
+        state["chain"] = chain
         target = "dlh." + a.schema
         windows = " OR ".join(
             "(kafka_partition="
@@ -216,6 +220,8 @@ def main():
         ):
             raise RuntimeError("Kafka position conflict")
         source = f"SELECT event_document AS document FROM {base} UNION ALL SELECT event_json AS document FROM {raw} WHERE topic='oil.events.v1' AND ({windows})"
+        if chain == "production":
+            source = "SELECT document FROM (" + source + ") WHERE json_extract_scalar(document,'$.event_type') IN ('field','well','production_day')"
         canonical = f"SELECT document,json_extract_scalar(document,'$.event_id') AS event_id,json_extract_scalar(document,'$.event_type') AS event_type,json_extract_scalar(document,'$.entity_id') AS entity_id,CAST(json_extract_scalar(document,'$.entity_version') AS BIGINT) AS entity_version,json_extract_scalar(document,'$.op') AS op,from_iso8601_timestamp(json_extract_scalar(document,'$.event_time')) AS event_time FROM (SELECT DISTINCT document FROM {target}.canonical_input)"
         commands = [
             (
@@ -228,7 +234,7 @@ def main():
                 f"CREATE TABLE {target}.canonical_event WITH (format='PARQUET') AS "
                 + canonical,
             ),
-        ] + sql_plan.plan(a.schema)
+        ] + sql_plan.plan(a.schema, chain)
         allowed = {name for name, _ in commands}
         for name, sql in commands:
             verify_fence(a.fence_probe, x, m)
@@ -285,7 +291,7 @@ def main():
                 ),
                 flush=True,
             )
-        for name, q in dq_sql.gates(a.schema) + dq_sql.comparisons(a.schema):
+        for name, q in dq_sql.gates(a.schema, chain) + dq_sql.comparisons(a.schema, chain):
             verify_fence(a.fence_probe, x, m)
             n = m.sql(q)[0]["n"]
             state["checks"][name] = n

@@ -17,6 +17,7 @@ DB = "dlh_trino.dlh"
 OPERATOR = "d07fc8f6-2e54-4737-b503-890d73e43c89"
 TEMPLATE = "dlh_trino.dlh.oil_demo_template.field_performance"
 CHARTS = tuple("webinar_superset.chart_" + str(n) for n in range(19, 23))
+PIPELINE = None
 NAME = re.compile(r"^[a-z][a-z0-9_]{0,62}$")
 
 
@@ -96,6 +97,8 @@ def coldef(row):
 
 def upsert_edge(c, a, b, description, mappings=None):
     d = {"source": "Manual", "description": description}
+    if PIPELINE:
+        d["pipeline"] = {"id": PIPELINE["id"], "type": "pipeline"}
     if mappings:
         d["columnsLineage"] = mappings
     tool(
@@ -147,6 +150,7 @@ def superseted_binding(schema, dataset):
 
 
 def main():
+    global PIPELINE
     p = argparse.ArgumentParser()
     p.add_argument("--evidence", required=True)
     p.add_argument("--manifest", required=True)
@@ -169,8 +173,9 @@ def main():
         "delta": x["delta_snapshot"],
     }:
         raise ValueError("release cut mismatch")
+    chain = x.get("chain", "performance")
     expected = ["canonical_input", "canonical_event"] + [
-        n for n, _ in sql_plan.plan(schema)
+        n for n, _ in sql_plan.plan(schema, chain)
     ]
     if (
         set(e.get("snapshots", {})) != set(expected)
@@ -206,6 +211,7 @@ def main():
         os.environ.get("OIL_CATALOG_CA_FILE"),
         os.environ.get("OIL_CATALOG_BEARER_FILE"),
     )
+    PIPELINE = tool(c, "get_pipeline_by_name", {"fqn": "webinar_airflow.oil_wave2_release"})
     schemas = inventory(c, "schemas")
     tables = inventory(c, "tables")
 
@@ -350,7 +356,7 @@ def main():
             c,
             gp,
             assets[x["baseline_table"]],
-            "Фактическая INITIAL CTAS из GP event при зафиксированной границе; полная история событий 4 типов.",
+            "Фактическая INITIAL CTAS из GP event при зафиксированной границе; полная история событий выбранной цепочки.",
             mappings,
         )
     edge(
@@ -375,7 +381,7 @@ def main():
             )
         },
     )
-    for name, sql in sql_plan.plan(schema):
+    for name, sql in sql_plan.plan(schema, chain):
         dst = prefix + name
         deps = set(
             re.findall(

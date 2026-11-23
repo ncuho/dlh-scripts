@@ -14,17 +14,20 @@ from oil_layered_plan import OPERATIONS
 from oil_layered_runtime import Runner
 from oil_layered_cedrus import MCP
 from oil_layered_spark import SparkClient
-from oil_source_lock import SourceLock
+from oil_source_snapshot import SourceSnapshot
 
 
 # Один task выполняет только выбранную операцию; журнал привязан к фактическому Airflow run_id.
 def execute(action, symbol=None, **context):
     """Open service clients and execute preflight, one table, a gate or compensation."""
     mode = (context['dag_run'].conf or {}).get('mode')
+    export_run_id = (context['dag_run'].conf or {}).get('source_export_run_id')
+    if not isinstance(export_run_id, str) or not 1 <= len(export_run_id) <= 250:
+        raise ValueError('First run oil_source_snapshot and copy its next_dag_config from task Logs/XCom')
     client = MCP(os.environ['OIL_TRINO_MCP_URL'], os.environ.get('OIL_MCP_CA_FILE'), os.environ.get('OIL_MCP_BEARER_FILE'))
     runner = Runner(client, mode, context['run_id'], spark_factory=lambda: SparkClient('bridge_' + uuid.uuid4().hex),
                     overlap_offsets=(context['dag_run'].conf or {}).get('overlap_offsets', 10),
-                    source_guard=SourceLock((context['dag_run'].conf or {}).get('source_lock')))
+                    source_guard=SourceSnapshot(client, mode, export_run_id))
     if action == 'table':
         return runner.materialize(symbol)
     return getattr(runner, action)()
@@ -32,7 +35,7 @@ def execute(action, symbol=None, **context):
 
 with DAG(
     dag_id='oil_layered_migration',
-    description='Перенос добычи в Bronze/Silver/Gold с проверками ключей и откатом кандидата',
+    description='Online перенос: нативный snapshot GP, Bronze/Silver/Gold, проверки и компенсация',
     start_date=datetime(2026, 1, 1), schedule=None, catchup=False,
     is_paused_upon_creation=True, max_active_runs=1,
     default_args={'retries': 0, 'execution_timeout': timedelta(minutes=30)},

@@ -60,13 +60,13 @@ class Runner:
         self.spark_factory = spark_factory
         self.overlap_offsets = overlap_offsets
         if source_guard is None:
-            raise ValueError('A verified native source lock is required')
+            raise ValueError('A verified native source snapshot is required')
         self.source_guard = source_guard
 
     def contract_hash(self):
         """Pin the plan, runtime and exact native SQL before any target write."""
         sources = {p.relative_to(self.sql_dir).as_posix(): p.read_text() for p in sorted(self.sql_dir.rglob('*.sql'))}
-        guard_path = Path(__file__).with_name('oil_source_lock.py')
+        guard_path = Path(__file__).with_name('oil_source_snapshot.py')
         return fingerprint({'operations': OPERATIONS, 'sql': sources, 'runtime': Path(__file__).read_text(), 'source_guard': guard_path.read_text()})
 
     def load(self):
@@ -74,6 +74,8 @@ class Runner:
         state = json.loads(self.path.read_text())
         if state['run_id'] != self.run_id or state['mode'] != self.mode or state['contract_hash'] != self.contract_hash():
             raise ValueError('Foreign receipt')
+        if hasattr(self.source_guard, 'validate_manifest'):
+            self.source_guard.validate_manifest(state['manifest'])
         return state
 
     def save(self, state):
@@ -96,10 +98,10 @@ class Runner:
         return fingerprint(rows)
 
     def manifest(self):
-        """Describe live committed source tables protected by the operator's native locks."""
+        """Export a consistent native GP snapshot and retain its checked Iceberg input."""
         value = self.source_guard.inspect(self.mode, OPERATIONS, self.client)
         if value.get('source_checks') != 'PASS' or value.get('topic') != 'oil.events.v1':
-            raise ValueError('Locked source did not pass its contract')
+            raise ValueError('Source snapshot did not pass its contract')
         if set(value['tables']) != {o['symbol'] for o in OPERATIONS}:
             raise ValueError('Boundary must contain exactly the approved 20 objects')
         return value
@@ -112,12 +114,13 @@ class Runner:
         if pointer.exists():
             raise FileExistsError('This release is already accepted; do not overwrite it')
         state = {'run_id': self.run_id, 'mode': self.mode, 'status': 'PREPARED',
-                 'manifest': self.manifest(), 'steps': {}, 'targets': {}, 'checks': [], 'contract_hash': self.contract_hash()}
+                 'steps': {}, 'targets': {}, 'checks': [], 'contract_hash': self.contract_hash()}
         for op in OPERATIONS:
             table = target(op['symbol'], self.mode)
             if self.count(table) != 0:
                 raise ValueError('Candidate is not empty: ' + table)
             state['targets'][op['symbol']] = {'table': table, 'identity': self.identity(table), 'before_snapshot': self.snapshot(table)}
+        state['manifest'] = self.manifest()
         if self.mode == 'refresh':
             state['initial'] = json.loads((self.root / 'ready_initial.json').read_text())
             if state['initial'].get('status') != 'READY':
@@ -150,11 +153,11 @@ class Runner:
                 time.sleep(2)
         self.source_guard.assert_held()
         self.save(state)
-        print(json.dumps({'status': 'PREPARED', 'mode': self.mode, 'boundary_id': state['manifest']['boundary_id'], 'source_lock': state['manifest']['source_lock'], 'receipt': str(self.path), 'window': state.get('window'), 'raw_snapshot': state.get('raw_snapshot')}))
+        print(json.dumps({'status': 'PREPARED', 'mode': self.mode, 'boundary_id': state['manifest']['boundary_id'], 'source_snapshot': state['manifest'].get('gp_snapshot_id'), 'input_snapshot': state['manifest'].get('input_snapshot'), 'receipt': str(self.path), 'window': state.get('window'), 'raw_snapshot': state.get('raw_snapshot')}))
         return {'receipt': str(self.path), 'targets': 20}
 
     def render(self, query, dialect, state):
-        """Resolve original GP objects under native locks and pinned INITIAL/raw snapshots."""
+        """Resolve typed sealed source input and pinned INITIAL/raw snapshots."""
         def replace(match):
             """Substitute one fixed source, target or historical reference."""
             side, symbol = match.groups()
@@ -169,6 +172,8 @@ class Runner:
             name = source['table']
             if (source['schema'], name) != tuple(symbol.split('__', 1)):
                 raise ValueError('Source relation differs from the reviewed object')
+            if hasattr(self.source_guard, 'relation'):
+                return self.source_guard.relation(symbol, dialect, state['manifest'])
             return 'greenplum_gp.' + source['schema'] + '.' + name
         value = re.sub(r'\{\{(source|target|initial):([^}]+)\}\}', replace, query)
         if '{{delta}}' in value:

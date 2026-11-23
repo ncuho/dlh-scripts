@@ -1,3 +1,5 @@
+-- Назначение: Факт зерна «интервал простоя». Содержит скважину, месторождение, начало/конец, причину и длительность в часах.
+-- Исполняйте в указанном SQL-движке; одноимённые функции и типы GP и Spark могут иметь разную семантику.
 -- Review template: replace oil_r_example with the chosen immutable release.
 -- Executed parameterized equivalent: pipelines/sql_plan/sql_plan.py.
 CREATE TABLE dlh.oil_r_example.fact_downtime_interval WITH (

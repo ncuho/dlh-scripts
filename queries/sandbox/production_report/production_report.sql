@@ -1,3 +1,5 @@
+-- Назначение: Read-only запрос к опубликованному baseline первой цепочки через Cedrus. Сравнение с GP корректно только на одной границе.
+-- Исполняйте в указанном SQL-движке; одноимённые функции и типы GP и Spark могут иметь разную семантику.
 -- Cedrus: first chain, already materialized and read-only.
 SELECT
     field_name,

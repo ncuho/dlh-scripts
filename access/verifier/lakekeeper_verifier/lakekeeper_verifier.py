@@ -32,6 +32,7 @@ OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
 
 def validate(value):
+    """Проверяет входные идентификаторы и ограничения до обращения к данным."""
     if not isinstance(value, dict) or value.get("status") != "ready":
         raise ValueError("ready evidence required")
     schema = value.get("schema")
@@ -50,6 +51,7 @@ def validate(value):
 
 
 def read_json(url, *, token=None, body=None):
+    """Читает и разбирает JSON с проверкой формата входного документа."""
     headers = {"Accept": "application/json"}
     if token is not None:
         headers["Authorization"] = "Bearer " + token
@@ -69,6 +71,7 @@ def read_json(url, *, token=None, body=None):
 
 
 def verify(value):
+    """Проверяет фактические права, идентичность ресурса и принятые критерии доступа."""
     schema, expected = validate(value)
     # This private call is exclusively to the existing loopback token proxy.
     token = read_json(
@@ -78,14 +81,17 @@ def verify(value):
         raise RuntimeError("token unavailable")
 
     def get(path):
+        """Читает выбранный ресурс через авторизованный сервисный API."""
         return read_json(BASE + path, token=token)
 
     def uuid(value):
+        """Проверяет канонический UUID; произвольный путь или SQL вместо ID отклоняется."""
         if not isinstance(value, str) or not UUID.fullmatch(value):
             raise RuntimeError("invalid object id")
         return value
 
     def assignments(path):
+        """Читает назначения ролей и пользователей на конкретный объект LakeKeeper."""
         out = get(path + "/assignments").get("assignments")
         if not isinstance(out, list):
             raise RuntimeError("missing assignments")
@@ -94,6 +100,7 @@ def verify(value):
         ]
 
     def actions(path, allowed):
+        """Проверяет эффективные действия identity на выбранном объекте."""
         out = get(
             path + "/access?principalRole=" + urllib.parse.quote(ROLE, safe="")
         ).get("allowed-actions")
@@ -155,9 +162,11 @@ def verify(value):
 
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):
+        """Пишет HTTP access log без возвращения секретных заголовков."""
         pass  # Do not log input, response, authorization headers or tokens.
 
     def reply(self, status, value):
+        """Возвращает структурированный HTTP ответ с заданным статусом."""
         payload = json.dumps(value, separators=(",", ":")).encode()
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
@@ -166,12 +175,14 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(payload)
 
     def do_GET(self):
+        """Обрабатывает разрешённый HTTP GET и возвращает наблюдаемое состояние сервиса."""
         if self.path == "/healthz":
             self.reply(200, {"status": "ok"})
         else:
             self.reply(404, {"error": "not found"})
 
     def do_POST(self):
+        """Проверяет тело HTTP POST и выполняет только предусмотренную сервисом операцию."""
         if self.path != "/verify":
             return self.reply(404, {"error": "not found"})
         try:

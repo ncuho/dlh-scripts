@@ -47,6 +47,7 @@ EXTRA = {
 
 
 def materialize(name, **context):
+    """Запускает согласованный Spark расчёт, сохраняя полученные snapshots и проверки выпуска."""
     conf = context["dag_run"].conf or {}
     schema = conf.get("schema", "")
     chain = conf.get("chain")

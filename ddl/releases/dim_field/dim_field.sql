@@ -1,3 +1,5 @@
+-- Назначение: Историческое измерение месторождения. Интервал действия версии — [valid_from, valid_to); удаление сохраняется отдельным признаком.
+-- Исполняйте в указанном SQL-движке; одноимённые функции и типы GP и Spark могут иметь разную семантику.
 -- Review template: replace oil_r_example with the chosen immutable release.
 -- Executed parameterized equivalent: pipelines/sql_plan/sql_plan.py.
 CREATE TABLE dlh.oil_r_example.dim_field WITH (

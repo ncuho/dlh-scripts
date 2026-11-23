@@ -11,6 +11,7 @@ from cedrus_release_runner import MCP, snap
 
 
 def main():
+    """Точка входа: Guarded Superset dataset switch. Default dry-run; --apply requires ready evidence. Импорт модуля сам по себе эту операцию не запускает."""
     p = argparse.ArgumentParser()
     p.add_argument("--evidence", required=True)
     p.add_argument("--grant-evidence", required=True)
@@ -71,6 +72,7 @@ def main():
     )
 
     def call(path, method="GET", data=None, csrf=None):
+        """Выполняет один запрос к сервису или провайдеру с явно заданным контекстом и проверкой ответа."""
         h = {
             "Accept": "application/json",
             "Content-Type": "application/json",

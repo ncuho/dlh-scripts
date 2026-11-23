@@ -34,6 +34,7 @@ NAME = re.compile(r"^[a-z][a-z0-9_]{0,62}$")
 
 
 def execute(**context):
+    """Исполняет выбранную операцию через зарегистрированный runtime; результат проверяется вызывающим кодом."""
     conf = context["dag_run"].conf or {}
     chain = conf.get("chain", "performance")
     if chain not in ("production", "performance"):

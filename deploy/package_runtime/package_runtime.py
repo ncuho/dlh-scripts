@@ -9,6 +9,7 @@ MODULE_DIRS = ("pipelines", "migration/fence", "publishing")
 
 
 def main():
+    """Точка входа: Stage categorized sources into the flat managed Airflow module directory. Импорт модуля сам по себе эту операцию не запускает."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", required=True)
     args = parser.parse_args()

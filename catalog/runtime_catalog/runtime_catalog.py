@@ -22,6 +22,7 @@ NAME = re.compile(r"^[a-z][a-z0-9_]{0,62}$")
 
 
 def decoded(result):
+    """Извлекает JSON документ из структурированного ответа MCP."""
     content = result.get("content") or []
     if not content:
         raise RuntimeError("empty catalog result")
@@ -35,10 +36,12 @@ def decoded(result):
 
 
 def tool(c, name, args):
+    """Вызывает конкретный инструмент сервиса и проверяет структурированный результат."""
     return decoded(c.rpc("tools/call", {"name": name, "arguments": args}))
 
 
 def inventory(c, kind):
+    """Читает актуальные объекты, их UUID и location для последующей проверки принадлежности."""
     name = "list_" + kind
     entries = []
     offset = 0
@@ -61,6 +64,7 @@ def inventory(c, kind):
 
 
 def coldef(row):
+    """Преобразует описание столбца в типизированное определение Data Catalog."""
     n = row.get("Column")
     raw = str(row.get("Type", "")).lower()
     if not isinstance(n, str) or not NAME.fullmatch(n):
@@ -96,6 +100,7 @@ def coldef(row):
 
 
 def upsert_edge(c, a, b, description, mappings=None):
+    """Регистрирует подтверждённую связь lineage между существующими сущностями."""
     d = {"source": "Manual", "description": description}
     if PIPELINE:
         d["pipeline"] = {"id": PIPELINE["id"], "type": "pipeline"}
@@ -117,6 +122,7 @@ def upsert_edge(c, a, b, description, mappings=None):
 
 
 def superseted_binding(schema, dataset):
+    """Проверяет текущую привязку Superset dataset к целевому release."""
     url = os.environ["OIL_SUPERSET_URL"].rstrip("/")
     if not url.startswith("https://"):
         raise ValueError("Superset URL must be HTTPS")
@@ -150,6 +156,7 @@ def superseted_binding(schema, dataset):
 
 
 def main():
+    """Точка входа: Register a validated, materialized oil release and update BI lineage after switch. Импорт модуля сам по себе эту операцию не запускает."""
     global PIPELINE
     p = argparse.ArgumentParser()
     p.add_argument("--evidence", required=True)
@@ -216,6 +223,7 @@ def main():
     tables = inventory(c, "tables")
 
     def register_schema(n):
+        """Регистрирует фактическую схему и её описание в Data Catalog."""
         fq = DB + "." + n
         if fq not in schemas:
             z = tool(
@@ -234,6 +242,7 @@ def main():
             schemas[fq] = z
 
     def register_table(fqn, snapshot, description):
+        """Регистрирует фактическую таблицу, столбцы и назначение в Data Catalog."""
         _, ns, name = fqn.split(".")
         register_schema(ns)
         dest = DB + "." + ns + "." + name
@@ -309,6 +318,7 @@ def main():
         )
 
     def edge(src, dst, mapping):
+        """Создаёт связь lineage с описанием реально выполняемой обработки."""
         a, b = assets[src], assets[dst]
         fa = DB + "." + src.split(".", 1)[1]
         fb = DB + "." + dst.split(".", 1)[1]

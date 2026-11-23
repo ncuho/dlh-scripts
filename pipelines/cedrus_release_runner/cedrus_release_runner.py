@@ -12,6 +12,7 @@ from bounded_delta import manifest as read_manifest, write_json, FQN
 
 class MCP:
     def __init__(self, url, ca, bearer_file):
+        """Сохраняет зависимости и настройки экземпляра; секреты остаются в штатных сервисах."""
         p = urllib.parse.urlparse(url)
         if p.scheme != "https" and not (
             p.scheme == "http" and p.hostname in ("127.0.0.1", "localhost", "::1")
@@ -34,6 +35,7 @@ class MCP:
         self.rpc("notifications/initialized", {}, False)
 
     def rpc(self, method, params, answer=True):
+        """Отправляет JSON-RPC запрос с текущей сессией и проверяет протокол ответа."""
         self.seq += 1
         body = {"jsonrpc": "2.0", "method": method, "params": params}
         if answer:
@@ -74,6 +76,7 @@ class MCP:
         return result.get("result", {})
 
     def sql(self, query):
+        """Выполняет SQL через зарегистрированный движок и возвращает фактические строки результата."""
         r = self.rpc(
             "tools/call", {"name": "execute_query", "arguments": {"query": query}}
         )
@@ -87,6 +90,7 @@ class MCP:
 
 
 def verify_fence(command, x, mcp):
+    """Проверяет действительность legacy offline fence; online Bridge использует отдельный committed capture."""
     if not command or not Path(command).is_absolute():
         raise ValueError("absolute fence-probe executable required")
     args = [sys.executable, command] if command.endswith(".py") else [command]
@@ -120,6 +124,7 @@ def verify_fence(command, x, mcp):
 
 
 def snap(mcp, table):
+    """Возвращает текущий Iceberg snapshot; непустая таблица без history считается ошибкой."""
     catalog, schema, name = table.split(".")
     rows = mcp.sql(
         f'SELECT snapshot_id FROM {catalog}.{schema}."{name}$history" ORDER BY made_current_at DESC LIMIT 1'
@@ -130,6 +135,7 @@ def snap(mcp, table):
 
 
 def main():
+    """Точка входа: Bounded Cedrus release runner. A source fence and durable evidence are mandatory. Импорт модуля сам по себе эту операцию не запускает."""
     p = argparse.ArgumentParser()
     p.add_argument("--manifest", required=True)
     p.add_argument("--schema", required=True)

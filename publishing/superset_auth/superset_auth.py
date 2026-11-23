@@ -12,6 +12,7 @@ import urllib.request
 
 @contextmanager
 def publisher_token():
+    """Временно получает токен сервисного издателя Superset и удаляет временный файл при выходе."""
     url = os.environ["OIL_SUPERSET_URL"].rstrip("/")
     parsed = urllib.parse.urlparse(url)
     if (

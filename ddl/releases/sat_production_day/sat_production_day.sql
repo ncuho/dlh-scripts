@@ -1,3 +1,5 @@
+-- Назначение: Сохраняет версии атрибутов дневной добычи, event_id, entity_version и операцию U/D. GP хранит типизированный payload и audit-поля; release DLH использует логическую проекцию с исходным document.
+-- Исполняйте в указанном SQL-движке; одноимённые функции и типы GP и Spark могут иметь разную семантику.
 -- Review template: replace oil_r_example with the chosen immutable release.
 -- Executed parameterized equivalent: pipelines/sql_plan/sql_plan.py.
 CREATE TABLE dlh.oil_r_example.sat_production_day WITH (

@@ -22,6 +22,7 @@ with op.open(
 
 
 def api(path, method="GET", body=None):
+    """Обращается к выбранному endpoint управления ролями через существующую service identity."""
     request = urllib.request.Request(
         BASE + path,
         data=json.dumps(body).encode() if body is not None else None,

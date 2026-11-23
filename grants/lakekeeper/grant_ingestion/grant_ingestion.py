@@ -6,6 +6,7 @@ opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
 
 def req(path, body=None, token=None):
+    """Отправляет авторизованный запрос LakeKeeper и возвращает статус с результатом."""
     h = {}
     if token:
         h["Authorization"] = "Bearer " + token

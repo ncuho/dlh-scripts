@@ -5,6 +5,7 @@ from pathlib import Path
 
 
 def main():
+    """Точка входа: Fixed command-only SSH relay; lease JSON passes only through stdin/stdout. Импорт модуля сам по себе эту операцию не запускает."""
     payload = sys.stdin.buffer.read(65537)
     if len(payload) > 65536:
         raise ValueError("controller input exceeds limit")

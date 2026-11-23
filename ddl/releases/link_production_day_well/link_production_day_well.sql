@@ -1,3 +1,5 @@
+-- Назначение: Хранит историческую связь скважино-дня со скважиной по техническим ключам. Изменяемые атрибуты находятся в satellites.
+-- Исполняйте в указанном SQL-движке; одноимённые функции и типы GP и Spark могут иметь разную семантику.
 -- Review template: replace oil_r_example with the chosen immutable release.
 -- Executed parameterized equivalent: pipelines/sql_plan/sql_plan.py.
 CREATE TABLE dlh.oil_r_example.link_production_day_well WITH (

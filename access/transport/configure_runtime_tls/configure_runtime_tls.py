@@ -17,6 +17,7 @@ AF = "airflow-atomcluster-4jn2dw24"
 
 
 def kubectl(args, body=None, check=True):
+    """Выполняет фиксированную Kubernetes операцию без вывода значений Secret."""
     r = subprocess.run(
         SSH + ["kubectl"] + args,
         input=json.dumps(body) if body is not None else None,
@@ -30,10 +31,12 @@ def kubectl(args, body=None, check=True):
 
 
 def apply(body):
+    """Применяет декларативное описание сервисного ресурса и проверяет ответ."""
     kubectl(["apply", "-f", "-"], body)
 
 
 def main():
+    """Точка входа: Configure a native cert-manager TLS/auth gateway for the migration runtime. Импорт модуля сам по себе эту операцию не запускает."""
     source = json.loads(
         kubectl(
             ["get", "cm", "vkcloud", "-n", "lakekeepercluster-dqs9wggw", "-o", "json"]

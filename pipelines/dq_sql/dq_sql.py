@@ -7,6 +7,7 @@ from sql_plan import SCHEMA
 
 
 def gates(schema, chain="performance"):
+    """Формирует блокирующие SQL проверки уникальности, ссылок и бизнес-инвариантов."""
     if not SCHEMA.fullmatch(schema):
         raise ValueError("invalid release schema")
     t = "dlh." + schema
@@ -69,6 +70,7 @@ def gates(schema, chain="performance"):
 
 
 def comparisons(schema, chain="performance"):
+    """Формирует двунаправленные SQL сравнения источника и цели на одной границе."""
     if not SCHEMA.fullmatch(schema):
         raise ValueError("invalid release schema")
     # Compare complete event history, not just a few business aggregates. The

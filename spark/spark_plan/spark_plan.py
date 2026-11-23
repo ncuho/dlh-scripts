@@ -24,6 +24,7 @@ ORDER = [
 ]
 EXTRA={'hub_downtime','link_downtime_well','sat_downtime','dim_downtime_reason','fact_downtime_interval','agg_field_downtime_day','field_performance'}
 def plan(schema,chain='performance'):
+    """Строит порядок миграции, зависимости и критерии проверки по фактическим входам."""
     if not re.fullmatch(r'oil_r_[a-z0-9_]{1,42}',schema):raise ValueError('invalid owned release')
     if chain not in {'production','performance'}:raise ValueError('unknown business chain')
     root=Path(__file__).resolve().parents[1]/'sql'

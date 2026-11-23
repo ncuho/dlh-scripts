@@ -40,6 +40,7 @@ def _login():
 
 
 def _resolve_token():
+    """Получает актуальный токен из штатного источника, не сохраняя его в Git или каталоге."""
     if JWT:
         return JWT, False  # static token, no refresh
     if USERNAME and PASSWORD:
@@ -55,6 +56,7 @@ client = get_client()
 
 
 def _refresher():
+    """Обновляет истекающую авторизацию фонового сервисного клиента."""
     while True:
         time.sleep(1800)  # 30 min; OM user tokens live ~1h
         try:
@@ -91,6 +93,7 @@ log.info("Total registered tools: %d", registered_count)
 
 
 def _om(method, endpoint, params=None, json_data=None):
+    """Возвращает авторизованный клиент Data Catalog."""
     headers = (
         {"Content-Type": "application/json-patch+json"} if method == "PATCH" else None
     )
@@ -100,6 +103,7 @@ def _om(method, endpoint, params=None, json_data=None):
 
 
 def _jd(obj):
+    """Преобразует типизированный объект метаданных в JSON-compatible представление."""
     return json.dumps(obj, ensure_ascii=False, default=str)
 
 
@@ -268,6 +272,7 @@ from uuid import UUID
 
 
 def delete_lineage_by_id(from_type: str, from_id: str, to_type: str, to_id: str):
+    """Удаляет конкретную связь lineage по проверенным endpoint IDs."""
     allowed = {"table", "chart", "dashboard", "pipeline", "topic"}
     if from_type not in allowed or to_type not in allowed:
         raise ValueError("unsupported lineage entity type")
@@ -308,6 +313,7 @@ app.add_tool(
 
 # Scoped status description update for the performance dashboard and its charts.
 def set_demo_bi_description(entity_type: str, entity_id: str, description: str):
+    """Обновляет пользовательское описание BI-объекта, сохраняя его технический ID."""
     allowed = {
         "dashboard": {"webinar_superset.dashboard_6"},
         "chart": {"webinar_superset.chart_" + str(n) for n in range(19, 23)},

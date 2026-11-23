@@ -11,6 +11,7 @@ from pathlib import Path
 
 class SourceFence:
     def __init__(self, manifest, controller):
+        """Сохраняет зависимости и настройки экземпляра; секреты остаются в штатных сервисах."""
         self.x = manifest
         self.controller = controller
         self.lease = None
@@ -22,6 +23,7 @@ class SourceFence:
             raise ValueError("absolute controller path required")
 
     def call(self, action):
+        """Выполняет один запрос к сервису или провайдеру с явно заданным контекстом и проверкой ответа."""
         body = {"action": action, "cut_id": self.x["cut_id"]}
         if self.lease:
             body["lease_id"] = self.lease
@@ -38,6 +40,7 @@ class SourceFence:
         return json.loads(p.stdout)
 
     def __enter__(self):
+        """Получает ресурсы контекстного менеджера; при ошибке освобождает уже полученные блокировки."""
         try:
             acquired = self.call("acquire")
             self.lease = acquired.get("lease_id")
@@ -81,6 +84,7 @@ class SourceFence:
 
             class Handler(socketserver.StreamRequestHandler):
                 def handle(self):
+                    """Обрабатывает один запрос локального контрольного канала и проверяет действительность lease."""
                     try:
                         self.rfile.readline(32)
                         result = owner.status()
@@ -134,6 +138,7 @@ class SourceFence:
             raise
 
     def status(self):
+        """Проверяет фактическую доступность провайдера или удерживаемого ресурса."""
         if not self.lease or not self.conn or self.conn.closed:
             raise RuntimeError("no live source fence")
         with self.conn.cursor() as c:
@@ -186,6 +191,7 @@ class SourceFence:
         }
 
     def close(self):
+        """Закрывает принадлежащую запуску сессию или ресурс; бизнес-данные не удаляет."""
         if self.server:
             self.server.shutdown()
             self.server.server_close()
@@ -208,5 +214,6 @@ class SourceFence:
             self.directory = None
 
     def __exit__(self, typ, value, tb):
+        """Освобождает ресурсы контекста, сохраняя исходную причину ошибки."""
         self.close()
         return False

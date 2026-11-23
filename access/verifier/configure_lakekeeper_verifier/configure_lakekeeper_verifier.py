@@ -16,6 +16,7 @@ SSH = ["ssh", "-o", "BatchMode=yes", "redos@79.137.175.114"]
 
 
 def kubectl(args, obj=None, timeout=45):
+    """Выполняет фиксированную Kubernetes операцию без вывода значений Secret."""
     process = subprocess.run(
         SSH + ["kubectl"] + args,
         input=json.dumps(obj) if obj is not None else None,
@@ -29,10 +30,12 @@ def kubectl(args, obj=None, timeout=45):
 
 
 def apply(obj):
+    """Применяет декларативное описание сервисного ресурса и проверяет ответ."""
     kubectl(["apply", "-f", "-"], obj)
 
 
 def main():
+    """Точка входа: Configure a narrowly scoped, read-only serving verifier beside LK token proxy. Импорт модуля сам по себе эту операцию не запускает."""
     deployment = json.loads(
         kubectl(["get", "deployment", DEPLOY, "-n", NS, "-o", "json"])
     )

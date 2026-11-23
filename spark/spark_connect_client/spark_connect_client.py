@@ -8,6 +8,7 @@ import urllib.request
 
 class SparkClient:
     def __init__(self,name):
+        """Сохраняет зависимости и настройки экземпляра; секреты остаются в штатных сервисах."""
         if not re.fullmatch(r'bridge_[a-f0-9_]{10,90}',name):raise ValueError('Invalid owned notebook')
         self.name=name;self.session=None;self.seq=0;self.kernel=None
         self.url=os.environ['BRIDGE_JUPYTER_MCP_URL']
@@ -19,6 +20,7 @@ class SparkClient:
     def rpc(self,method,params,answer=True,timeout=1300):
         # The registered MCP deployment serves its localhost virtual host.
         # Network destination remains the allowlisted dedicated Kubernetes service.
+        """Отправляет JSON-RPC запрос с текущей сессией и проверяет протокол ответа."""
         self.seq+=1;h={'Content-Type':'application/json','Accept':'application/json, text/event-stream','Authorization':'Bearer '+self.token,'Host':'localhost:8000'}
         if self.session:h['Mcp-Session-Id']=self.session
         body={'jsonrpc':'2.0','method':method,'params':params}
@@ -39,6 +41,7 @@ class SparkClient:
         return result['result']
 
     def tool(self,name,args):
+        """Вызывает конкретный инструмент сервиса и проверяет структурированный результат."""
         result=self.rpc('tools/call',{'name':name,'arguments':args})
         value=result.get('structuredContent',{}).get('result')
         if value is None:
@@ -49,6 +52,7 @@ class SparkClient:
         return value
 
     def open(self):
+        """Создаёт отдельную сессию исполнения с проверенными настройками и авторизацией."""
         result=self.tool('use_notebook',{'notebook_name':self.name,'notebook_path':self.name+'.ipynb','mode':'create'})
         text=json.dumps(result)
         match=re.search(r"kernel(?:[_ ]id)?[\s\"':]+([a-f0-9-]{36})",text,re.I)
@@ -57,8 +61,10 @@ class SparkClient:
         self.execute("from dp103_spark import connect_dlh\nspark=connect_dlh()\nspark.conf.set('spark.sql.session.timeZone','UTC')\nprint('PB_RESULT:'+__import__('json').dumps({'spark_version':spark.version}))")
 
     def execute(self,code):
+        """Исполняет выбранную операцию через зарегистрированный runtime; результат проверяется вызывающим кодом."""
         result=self.tool('execute_code',{'code':code,'timeout':1200,'kernel_id':self.kernel})
         def strings(x):
+            """Извлекает текстовые ответы из структурированных content blocks сервиса."""
             if isinstance(x,str):yield x
             elif isinstance(x,list):
                 for v in x:yield from strings(v)
@@ -71,7 +77,9 @@ class SparkClient:
         raise RuntimeError('Spark result marker missing; inspect execution before retry')
 
     def sql(self,query):
+        """Выполняет SQL через зарегистрированный движок и возвращает фактические строки результата."""
         return self.execute('import json\n_result=spark.sql('+repr(query)+')\n_rows=[r.asDict(recursive=True) for r in _result.collect()]\nprint("PB_RESULT:"+json.dumps({"rows":_rows},default=str))')['rows']
 
     def close(self):
+        """Закрывает принадлежащую запуску сессию или ресурс; бизнес-данные не удаляет."""
         if self.kernel:self.tool('unuse_notebook',{'notebook_name':self.name})

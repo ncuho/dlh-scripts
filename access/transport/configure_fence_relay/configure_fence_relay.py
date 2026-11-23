@@ -31,6 +31,7 @@ KAFKA = [
 
 
 def call(prefix, command, data=None):
+    """Выполняет один запрос к сервису или провайдеру с явно заданным контекстом и проверкой ответа."""
     r = subprocess.run(
         prefix + [command], input=data, text=True, capture_output=True, timeout=35
     )
@@ -40,12 +41,14 @@ def call(prefix, command, data=None):
 
 
 def hostkey(prefix):
+    """Получает и проверяет SSH host key до настройки доверенного relay."""
     return " ".join(
         call(prefix, "cat /etc/ssh/ssh_host_ed25519_key.pub").strip().split()[:2]
     )
 
 
 def main():
+    """Точка входа: Provision command-only SSH access for the migration fence; no shell access. Импорт модуля сам по себе эту операцию не запускает."""
     prior = subprocess.run(
         BASTION
         + [

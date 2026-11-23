@@ -10,6 +10,7 @@ SCHEMA = re.compile(r"^oil_r_[a-z0-9_]{1,42}$")
 
 
 def plan(schema, chain="performance"):
+    """Строит порядок миграции, зависимости и критерии проверки по фактическим входам."""
     if chain not in ("production", "performance"):
         raise ValueError("unknown business chain")
     if not SCHEMA.fullmatch(schema):

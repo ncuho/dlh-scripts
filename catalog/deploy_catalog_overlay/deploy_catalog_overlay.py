@@ -10,6 +10,7 @@ CM = "oil-catalog-lineage-overlay"
 
 
 def run(cmd, data=None):
+    """Выполняет согласованный контракт в порядке зависимостей и блокирует READY при любом нарушении сверки."""
     p = subprocess.run(
         SSH + ["kubectl"] + cmd, input=data, text=True, capture_output=True, timeout=90
     )

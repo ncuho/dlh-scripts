@@ -31,6 +31,7 @@ with opener.open(
 
 
 def req(path, body=None):
+    """Отправляет авторизованный запрос LakeKeeper и возвращает статус с результатом."""
     h = {"Authorization": "Bearer " + token}
     if body is not None:
         h["Content-Type"] = "application/json"

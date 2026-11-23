@@ -1,11 +1,4 @@
--- Контекст миграции: AS IS / TO BE.
--- Назначение: Хранит версии атрибутов production_day, происхождение, порядок версий и операции изменения.
--- AS IS: История событий и GP-расчёты обеих исходных веток.
--- TO BE: Альтернативная release-проекция с canonical_input/event и размерными моделями.
--- Отличие: Сохранённый маршрут; production_online первой волны имеет собственный 20-объектный контракт.
--- Конец контекста миграции.
--- Review template: replace oil_r_example with the chosen immutable release.
--- Executed parameterized equivalent: pipelines/sql_plan/sql_plan.py.
+-- Хранит версии атрибутов production_day, происхождение, порядок версий и операции изменения.
 CREATE TABLE dlh.oil_r_example.sat_production_day WITH (
     format = 'PARQUET'
 ) AS

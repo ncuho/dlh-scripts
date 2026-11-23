@@ -1,9 +1,5 @@
-# Контекст миграции: AS IS / TO BE.
-# Назначение: Разворачивает verifier с TLS, авторизацией и ограничением сетевого доступа. Секреты хранятся в Kubernetes Secret.
-# AS IS: Source-доступ осуществляется через GP, TLS и зарегистрированные identities.
-# TO BE: Настраивает проверяемый транспорт/доверие или verifier target-сервисов.
-# Отличие: Это инфраструктурный доступ, а не автоматический перенос бизнес-ролей; TLS не отключается ради миграции.
-# Конец контекста миграции.
+# Разворачивает verifier с TLS, авторизацией и ограничением сетевого доступа. Секреты хранятся в Kubernetes Secret.
+# Это инфраструктурный доступ, а не автоматический перенос бизнес-ролей; TLS не отключается ради миграции.
 """Configure a narrowly scoped, read-only serving verifier beside LK token proxy."""
 
 import json
@@ -121,7 +117,7 @@ def main():
         }
     )
     # No policies existed before installation.  Preserve previously unrestricted
-    # ingress to 8080 while admitting 8091 only from the MCP namespace.
+    # Ingress to 8080 while admitting 8091 only from the MCP namespace.
     apply(
         {
             "apiVersion": "networking.k8s.io/v1",

@@ -1,9 +1,5 @@
-# Контекст миграции: AS IS / TO BE.
-# Назначение: plan(schema, chain) возвращает упорядоченный SQL CTAS для Cedrus. production содержит 12 доменных таблиц; вместе с canonical_input/canonical_event получается 14. performance добавляет семь зависимостей простоев, всего 21. Входной baseline и.
-# AS IS: Source функции работают в транзакции GP.
-# TO BE: Исполнитель материализует согласованный target release и журналирует результаты.
-# Отличие: Сохранённый альтернативный runtime; текущий online-путь выполняется project_runner с capture C0/C1.
-# Конец контекста миграции.
+# Plan(schema, chain) возвращает упорядоченный SQL CTAS для Cedrus. production содержит 12 доменных таблиц; вместе с canonical_input/canonical_event получается 14. performance добавляет семь зависимостей простоев, всего 21. Входной baseline и.
+# Сохранённый альтернативный runtime; текущий online-путь выполняется project_runner с capture C0/C1.
 """Trino SQL for immutable oil release. Requires prevalidated canonical_event.
 
 Rendered queries were reconciled against GP on a fenced rehearsal boundary.
@@ -31,7 +27,7 @@ def plan(schema, chain="performance"):
     down_hk = hk("'downtime:'||entity_id")
     p = []
     # Release-scoped logical Raw Vault projection; ingestion metadata is not
-    # reconstructed from raw sink fields and must not be compared as GP audit data.
+    # Reconstructed from raw sink fields and must not be compared as GP audit data.
     for entity, prefix, key in [
         ("field", "field", "field_hk"),
         ("well", "well", "well_hk"),

@@ -1,9 +1,5 @@
-# Контекст миграции: AS IS / TO BE.
-# Назначение: Настраивает HTTPS+Bearer gateway для вызовов runtime к SQL MCP, каталогу и проверке serving-доступов.
-# AS IS: Source-доступ осуществляется через GP, TLS и зарегистрированные identities.
-# TO BE: Настраивает проверяемый транспорт/доверие или verifier target-сервисов.
-# Отличие: Это инфраструктурный доступ, а не автоматический перенос бизнес-ролей; TLS не отключается ради миграции.
-# Конец контекста миграции.
+# Настраивает HTTPS+Bearer gateway для вызовов runtime к SQL MCP, каталогу и проверке serving-доступов.
+# Это инфраструктурный доступ, а не автоматический перенос бизнес-ролей; TLS не отключается ради миграции.
 """Configure a native cert-manager TLS/auth gateway for the migration runtime.
 
 The opaque transport token is generated once and stays only in Kubernetes Secrets.
@@ -282,7 +278,7 @@ http {
         },
     )
     # There was no previous ingress policy: preserve the legacy port's reachability
-    # while restricting the new authenticated route to Airflow and this namespace.
+    # While restricting the new authenticated route to Airflow and this namespace.
     apply(
         {
             "apiVersion": "networking.k8s.io/v1",

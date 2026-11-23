@@ -1,9 +1,5 @@
-# Контекст миграции: AS IS / TO BE.
-# Назначение: Настраивает ограниченный SSH relay от Airflow к Kafka fence с forced command и закреплёнными host keys.
-# AS IS: Source-доступ осуществляется через GP, TLS и зарегистрированные identities.
-# TO BE: Настраивает проверяемый транспорт/доверие или verifier target-сервисов.
-# Отличие: Это инфраструктурный доступ, а не автоматический перенос бизнес-ролей; TLS не отключается ради миграции.
-# Конец контекста миграции.
+# Настраивает ограниченный SSH relay от Airflow к Kafka fence с forced command и закреплёнными host keys.
+# Это инфраструктурный доступ, а не автоматический перенос бизнес-ролей; TLS не отключается ради миграции.
 """Provision command-only SSH access for the migration fence; no shell access.
 
 Private keys never leave memory except their intended restricted host/Secret.

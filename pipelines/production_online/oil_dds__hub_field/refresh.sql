@@ -1,12 +1,4 @@
--- Контекст миграции: AS IS / TO BE.
--- Назначение: Хранит устойчивый бизнес-ключ и hash key сущности field; атрибуты вынесены в satellites.
--- AS IS: oil_dds.hub_field в GP; выбранная исходная бизнес-сущность.
--- TO BE: REFRESH: отдельный выпуск из pinned INITIAL и полного raw-окна [C0,C1).
--- Отличие: INITIAL не изменяется; source GP для пересчёта не перечитывается. Версии/удаления применяет целевой SQL.
--- Конец контекста миграции.
--- Хранит бизнес-идентификатор месторождения и детерминированный hash key. Не содержит изменяемых описательных атрибутов.
--- Engine: spark. Столбцы INSERT берутся в порядке DDL, не по позиции исходного SELECT.
--- REFRESH: закреплённый INITIAL + весь диапазон C0–C1; исключены более поздние offsets.
+-- Берём distinct бизнес-ключи месторождений и вычисляем тот же md5 hash key, что и в GP. Это целевой SQL-этап вместо части apply_batch GP.
 WITH candidates AS
     (SELECT md5(concat('field:', e.entity_id)) AS field_hk,
             e.entity_id AS field_id,{{cut_time}} AS load_dts,

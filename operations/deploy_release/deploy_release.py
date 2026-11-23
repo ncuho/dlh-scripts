@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
-# Контекст миграции: AS IS / TO BE.
-# Назначение: python3 deploy_release.py загружает проверенный DAG и библиотеки в настроенный S3-префикс Airflow DAGs/managed/. Учётные данные используются внутри существующего sidecar; старый файл этого DAG удаляется после проверки новых объектов. Бизнес.
-# AS IS: Исходный source release применяется внутри GP.
-# TO BE: Разворачивает явно выбранный target runtime/выпуск.
-# Отличие: Не смешивайте старый deployment с текущими namespaces проекта и его принятым SQL.
-# Конец контекста миграции.
+# Python3 deploy_release.py загружает проверенный DAG и библиотеки в настроенный S3-префикс Airflow DAGs/managed/. Учётные данные используются внутри существующего sidecar; старый файл этого DAG удаляется после проверки новых объектов. Бизнес.
+# Не смешивайте старый deployment с текущими namespaces проекта и его принятым SQL.
 """Publish reviewed release code to the configured Airflow S3 DAG source."""
 import hashlib,json,shlex,subprocess
 from pathlib import Path

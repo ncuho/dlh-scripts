@@ -1,9 +1,5 @@
-# Контекст миграции: AS IS / TO BE.
-# Назначение: Native Airflow DAG for reviewing each SQL entity as its own task. Requires a separately captured immutable canonical_event and the source boundary held by the operator. Load the reviewed SQL and Spark transport into the configured S3 DAG di.
-# AS IS: Source DAG обновляет GP-историю и обе витрины.
-# TO BE: Целевой Airflow DAG оркестрирует release и расчёты Cedrus/Spark.
-# Отличие: Имена и состав tasks задаёт этот вариант DAG; универсальный Bridge разворачивает отдельный reviewed project DAG.
-# Конец контекста миграции.
+# Native Airflow DAG for reviewing each SQL entity as its own task. Requires a separately captured immutable canonical_event and the source boundary held by the operator. Load the reviewed SQL and Spark transport into the configured S3 DAG di.
+# Имена и состав tasks задаёт этот вариант DAG; универсальный Bridge разворачивает отдельный reviewed project DAG.
 """Materialize reviewed business SQL after baseline and canonical_event preparation."""
 
 from datetime import datetime, timedelta
@@ -52,6 +48,7 @@ EXTRA = {
 }
 
 
+# Читает SQL одного объекта, подставляет release namespace и выполняет его на удалённом Spark; GP-функцию не вызывает.
 def materialize(name, **context):
     """Запускает согласованный Spark расчёт, сохраняя полученные snapshots и проверки выпуска."""
     conf = context["dag_run"].conf or {}
@@ -73,6 +70,7 @@ def materialize(name, **context):
     spark = SparkClient("bridge_" + uuid.uuid4().hex)
     try:
         spark.open()
+        # CREATE TABLE AS SELECT материализует один объект; в AS IS эти преобразования выполнялись внутри функций GP.
         spark.sql(sql)
         return {"entity": name, "status": "MATERIALIZED"}
     finally:
@@ -95,6 +93,7 @@ with DAG(
 ) as dag:
     previous = None
     for name in ORDER:
+        # Python_callable=materialize получает name, поэтому SQL и результат каждого расчёта видны отдельно.
         task = PythonOperator(
             task_id=name,
             python_callable=materialize,

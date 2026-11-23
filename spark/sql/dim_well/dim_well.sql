@@ -1,9 +1,4 @@
--- Контекст миграции: AS IS / TO BE.
--- Назначение: Формирует SCD2-версии скважин и принадлежность месторождению.
--- AS IS: PL/pgSQL GP строит Vault-проекции и Kimball-модель внутри БД.
--- TO BE: Spark SELECT строит сущность из canonical history в согласованном release.
--- Отличие: Этот набор использует альтернативную canonical-модель; текущий production_online нельзя подменять им без review.
--- Конец контекста миграции.
+-- LEAD(valid_from) закрывает SCD2-интервалы скважины, link_well_field даёт историческое месторождение. Расчёт выполняется вместо соответствующей части refresh_production GP.
 SELECT
   LOWER(HEX(UNHEX(MD5(ENCODE('well:' || entity_id, 'utf-8'))))) AS well_hk,
   LOWER(

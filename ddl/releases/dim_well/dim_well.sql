@@ -1,11 +1,4 @@
--- Контекст миграции: AS IS / TO BE.
--- Назначение: Формирует SCD2-версии скважин и принадлежность месторождению.
--- AS IS: История событий и GP-расчёты обеих исходных веток.
--- TO BE: Альтернативная release-проекция с canonical_input/event и размерными моделями.
--- Отличие: Сохранённый маршрут; production_online первой волны имеет собственный 20-объектный контракт.
--- Конец контекста миграции.
--- Review template: replace oil_r_example with the chosen immutable release.
--- Executed parameterized equivalent: pipelines/sql_plan/sql_plan.py.
+-- Формирует SCD2-версии скважин и принадлежность месторождению.
 CREATE TABLE dlh.oil_r_example.dim_well WITH (
     format = 'PARQUET'
 ) AS

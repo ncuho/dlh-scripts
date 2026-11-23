@@ -1,9 +1,4 @@
--- Контекст миграции: AS IS / TO BE.
--- Назначение: Хранит версии атрибутов well, происхождение, порядок версий и операции изменения.
--- AS IS: PL/pgSQL GP строит Vault-проекции и Kimball-модель внутри БД.
--- TO BE: Spark SELECT строит сущность из canonical history в согласованном release.
--- Отличие: Этот набор использует альтернативную canonical-модель; текущий production_online нельзя подменять им без review.
--- Конец контекста миграции.
+-- Из well-событий строим well/link hash keys, сохраняем версии и U/D; hashdiff зависит от исходного текста payload. Это целевой SQL-этап вместо части apply_batch GP.
 SELECT
   LOWER(HEX(UNHEX(MD5(ENCODE('well:' || entity_id, 'utf-8'))))) AS well_hk,
   event_id,

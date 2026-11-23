@@ -1,12 +1,4 @@
--- Контекст миграции: AS IS / TO BE.
--- Назначение: Хранит версии атрибутов field, происхождение, порядок версий и операции изменения.
--- AS IS: oil_dds.sat_field в GP; выбранная исходная бизнес-сущность.
--- TO BE: Cedrus исполняет только проверки текущей phase и both; публикация разрешена при нулевых нарушениях.
--- Отличие: PK/FK/UNIQUE Iceberg не обеспечивает; SQL проверяет grain, дубли, ссылки, SCD2 и равенство на C0/C1.
--- Конец контекста миграции.
--- Проверка: sat_field_initial_exact; phase=initial
 -- Полное равенство исходной копии, включая аудит и hashdiff; ожидается n=0.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 SELECT count(*) AS n
 FROM (
           (SELECT field_hk,
@@ -55,9 +47,8 @@ FROM (
                              region
            FROM {{source:oil_dds__sat_field}})) q;
 
--- Проверка: sat_field_initial_retained; phase=refresh
+
 -- Все исходные версии и их аудит сохранены без изменений.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 SELECT count(*) AS n
 FROM
     (SELECT field_hk,
@@ -83,9 +74,8 @@ FROM
                        region
      FROM {{target:oil_dds__sat_field}}) q;
 
--- Проверка: sat_field_business; phase=both
+
 -- Полное соответствие истории field реестру событий; исходная формула hashdiff применяется к сохранённому тексту payload.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 WITH expected AS
     (SELECT lower(to_hex(md5(to_utf8('field:' || entity_id)))) AS field_hk,
             event_id,
@@ -119,9 +109,8 @@ FROM (
            EXCEPT ALL SELECT *
            FROM expected)) q;
 
--- Проверка: sat_field_keys_and_references; phase=both
+
 -- Уникальность event_id и версии объекта; наличие родительского hub и события с тем же аудитом.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 SELECT count(*) AS n
 FROM
     (SELECT event_id AS k

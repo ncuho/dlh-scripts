@@ -1,9 +1,5 @@
-# Контекст миграции: AS IS / TO BE.
-# Назначение: Исполняет reviewed INITIAL/REFRESH в Airflow и блокирует выпуск при ошибке DQ.
-# AS IS: Исходная цепочка работает в GP; инженер вручную исследует, переносит и сверяет сущности.
-# TO BE: Bridge оркестрирует те же сервисы по принятому плану, коду и проверкам.
-# Отличие: Агент предлагает план/SQL; разрешённый исполнитель применяет принятые операции. Source не удаляется автоматически.
-# Конец контекста миграции.
+# Исполняет reviewed INITIAL/REFRESH в Airflow и блокирует выпуск при ошибке DQ.
+# Агент предлагает план/SQL; разрешённый исполнитель применяет принятые операции. Source не удаляется автоматически.
 """Installed Airflow execution library for compiled migration contracts.
 
 This file deliberately has no application database, agent, recipe or business IDs.
@@ -196,6 +192,7 @@ def run(spec,conf,run_id):
             quote='`' if dialect=='spark' else '"'
             fields=', '.join(quote+c['name'].replace(quote,quote+quote)+quote for c in op['columns'])
             ordered='SELECT '+fields+' FROM ('+query+') reviewed_projection'
+            # Spark исполняет бизнес-преобразования, Cedrus — копии/SQL своего dialect; обе ветки пишут в отдельный target release.
             if dialect=='spark':spark_client.sql('INSERT INTO '+table+' '+ordered)
             else:m.sql('INSERT INTO '+table+' '+ordered)
             step['state']='DONE';state['snapshots'][symbol]=snap(m,table);write(path,state)
@@ -203,6 +200,7 @@ def run(spec,conf,run_id):
         for op in spec['operations']:
             for check in op['checks']:
                 if check.get('phase','both') not in ('both',mode):continue
+                # Проверка заменяет отсутствующие гарантии PK/FK/UNIQUE Iceberg: числовой n должен быть 0, иначе READY и публикация блокируются.
                 rows=m.sql(render(check['query']))
                 if len(rows)!=1 or 'n' not in rows[0] or not isinstance(rows[0]['n'],(int,float)):raise ValueError('Check contract requires one numeric n')
                 result={'symbol':op['symbol'],'name':check['name'],'violations':rows[0]['n'],'purpose':check['purpose']};state['checks'].append(result);write(path,state)

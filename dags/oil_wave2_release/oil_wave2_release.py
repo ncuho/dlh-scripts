@@ -1,9 +1,5 @@
-# Контекст миграции: AS IS / TO BE.
-# Назначение: Ручной DAG oil_wave2_release строит independent INITIAL/REFRESH для chain=production (14 таблиц) или chain=performance (21). Общий producer fence и GP advisory lock удерживаются одной задачей; manifest фиксирует Kafka identity/offsets и Ice.
-# AS IS: Source DAG обновляет GP-историю и обе витрины.
-# TO BE: Целевой Airflow DAG оркестрирует release и расчёты Cedrus/Spark.
-# Отличие: Имена и состав tasks задаёт этот вариант DAG; универсальный Bridge разворачивает отдельный reviewed project DAG.
-# Конец контекста миграции.
+# Ручной DAG oil_wave2_release строит independent INITIAL/REFRESH для chain=production (14 таблиц) или chain=performance (21). Общий producer fence и GP advisory lock удерживаются одной задачей; manifest фиксирует Kafka identity/offsets и Ice.
+# Имена и состав tasks задаёт этот вариант DAG; универсальный Bridge разворачивает отдельный reviewed project DAG.
 """Manual oil release orchestration. Deployment/configuration required.
 
 The build holds Kafka controller lease and Greenplum advisory lock in this one
@@ -40,7 +36,14 @@ NAME = re.compile(r"^[a-z][a-z0-9_]{0,62}$")
 
 
 def execute(**context):
-    """Исполняет выбранную операцию через зарегистрированный runtime; результат проверяется вызывающим кодом."""
+    """Готовит согласованный выпуск или публикует уже проверенный результат.
+
+    Для build проверяет INITIAL/REFRESH manifest, удерживает исходный fence и
+    запускает расчёт через Cedrus runner. Для publish проверяет права читателя
+    и переключает dataset Superset; catalog_ready/catalog_published отражают
+    фактическое состояние выпуска в Data Catalog. Это отдельный offline-вариант,
+    текущий online-сценарий использует project DAG и committed GP capture.
+    """
     conf = context["dag_run"].conf or {}
     chain = conf.get("chain", "performance")
     if chain not in ("production", "performance"):
@@ -124,7 +127,7 @@ def execute(**context):
                     raise RuntimeError("GP checkpoints do not match fenced broker cut")
                 fence.status()
                 # A committed Kafka checkpoint only proves landing in STG, not application
-                # to DDS. Never advance the baseline offset beyond an unapplied event.
+                # To DDS. Never advance the baseline offset beyond an unapplied event.
                 pending = m.sql(
                     "SELECT count(*) AS n FROM greenplum_gp.oil_stg.batch_control WHERE status IN ('OPEN','READY','FAILED')"
                 )[0]["n"]
@@ -417,4 +420,5 @@ with DAG(
     max_active_runs=1,
     tags=["oil", "manual", "bounded"],
 ) as dag:
+    # TASK альтернативного release: execute запускает guarded pipeline; это не вызов source apply_batch и не task универсального Bridge.
     PythonOperator(task_id="execute_guarded_release", python_callable=execute)

@@ -1,12 +1,4 @@
--- Контекст миграции: AS IS / TO BE.
--- Назначение: Хранит принятые event_id, версии сущностей, операции U/D и исходный документ.
--- AS IS: oil_dds.event в GP; выбранная исходная бизнес-сущность.
--- TO BE: Cedrus исполняет только проверки текущей phase и both; публикация разрешена при нулевых нарушениях.
--- Отличие: PK/FK/UNIQUE Iceberg не обеспечивает; SQL проверяет grain, дубли, ссылки, SCD2 и равенство на C0/C1.
--- Конец контекста миграции.
--- Проверка: event_initial_exact; phase=initial
 -- Полное равенство исходному реестру: исходные GP batch_id, load_dts, record_source, payload и документ сохранены.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 SELECT count(*) AS n
 FROM (
           (SELECT event_id,
@@ -59,9 +51,8 @@ FROM (
                              event_document
            FROM {{source:oil_dds__event}})) q;
 
--- Проверка: event_initial_retained; phase=refresh
+
 -- Replay не меняет ни одного поля первоначально принятого события.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 SELECT count(*) AS n
 FROM
     (SELECT event_id,
@@ -89,9 +80,8 @@ FROM
                        event_document
      FROM {{target:oil_dds__event}}) q;
 
--- Проверка: event_stage_business_coverage; phase=both
+
 -- Каждая доставка всех четырёх типов отражена в ledger с теми же бизнес-полями, точным документом и payload. Batch ID доставки не сравнивается с исходным GP ID.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 SELECT count(*) AS n
 FROM {{target:oil_stg__v_event_parsed}} p
 LEFT JOIN {{target:oil_dds__event}} e ON e.event_id=p.event_id
@@ -113,9 +103,8 @@ WHERE e.event_id IS NULL
     OR e.event_document IS DISTINCT
     FROM p.event_json;
 
--- Проверка: event_id_and_version_conflicts; phase=both
+
 -- Уникальность ledger; запрет повторного event_id с другим JSON и разных event_id для одной версии сущности.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 WITH history AS
     (SELECT event_id,
             event_type,
@@ -151,9 +140,8 @@ FROM
      OR entity_version IS NULL
      OR count(DISTINCT event_id)>1) q;
 
--- Проверка: event_new_rows_audit_and_coverage; phase=refresh
+
 -- Новые события имеют целевой cut_time и происходят из текущей доставки, выбранной детерминированно; batch_id является аудитом sink.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 WITH ranked AS
     (SELECT p.*,
             row_number() OVER (PARTITION BY event_id
@@ -180,9 +168,8 @@ WHERE p.event_id IS NULL
     OR e.event_document IS DISTINCT
     FROM p.event_json;
 
--- Проверка: event_document_consistency; phase=both
+
 -- Ledger содержит валидный JSON и согласованные поля envelope/payload, включая downtime.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 WITH d AS
     (SELECT e.*,
             try(json_parse(event_document)) AS j,

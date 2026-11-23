@@ -1,11 +1,4 @@
--- Контекст миграции: AS IS / TO BE.
--- Назначение: Хранит историю связи well_field через hash keys связанных hubs.
--- AS IS: История событий и GP-расчёты обеих исходных веток.
--- TO BE: Альтернативная release-проекция с canonical_input/event и размерными моделями.
--- Отличие: Сохранённый маршрут; production_online первой волны имеет собственный 20-объектный контракт.
--- Конец контекста миграции.
--- Review template: replace oil_r_example with the chosen immutable release.
--- Executed parameterized equivalent: pipelines/sql_plan/sql_plan.py.
+-- Хранит историю связи well_field через hash keys связанных hubs.
 CREATE TABLE dlh.oil_r_example.link_well_field WITH (
     format = 'PARQUET'
 ) AS SELECT DISTINCT

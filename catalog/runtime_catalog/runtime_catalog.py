@@ -1,9 +1,5 @@
-# Контекст миграции: AS IS / TO BE.
-# Назначение: Ready evidence и manifest определяют chain и точный состав: 14 или 21 таблица, baseline и raw. Скрипт сверяет snapshots, регистрирует таблицы и column lineage фактически исполненного SQL, связывая обработку с pipeline webinar_airflow.oil_wa.
-# AS IS: Catalog описывает source tables, функции, Kafka и BI lineage.
-# TO BE: Регистрирует фактические target-таблицы, обработку и связи до BI.
-# Отличие: Метаданные не переносят данные; lineage должен соответствовать реальному SQL и фактическому выпуску.
-# Конец контекста миграции.
+# Ready evidence и manifest определяют chain и точный состав: 14 или 21 таблица, baseline и raw. Скрипт сверяет snapshots, регистрирует таблицы и column lineage фактически исполненного SQL, связывая обработку с pipeline webinar_airflow.oil_wa.
+# Метаданные не переносят данные; lineage должен соответствовать реальному SQL и фактическому выпуску.
 """Register a validated, materialized oil release and update BI lineage after switch.
 
 No kubectl, credentials, consumer activation, dataset changes or destructive table
@@ -408,7 +404,7 @@ def main():
         )
         for src in sorted(deps):
             # Register table-level dependencies for JOIN/filter; add only
-            # columns that are unmistakable direct projections or documented calculations.
+            # Columns that are unmistakable direct projections or documented calculations.
             mapping = {}
             if src == prefix + "canonical_event":
                 if name.startswith("hub_"):
@@ -555,7 +551,7 @@ def main():
                     if node.get("id") != published["id"]:
                         obsolete.append(node["id"])
             # Add the confirmed release first. Remove only previous demo-serving
-            # release/template edges; preserve unrelated human-curated lineage.
+            # Release/template edges; preserve unrelated human-curated lineage.
             tool(
                 c,
                 "add_lineage",

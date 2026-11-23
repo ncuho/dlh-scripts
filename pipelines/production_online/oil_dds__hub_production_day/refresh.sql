@@ -1,12 +1,4 @@
--- Контекст миграции: AS IS / TO BE.
--- Назначение: Хранит устойчивый бизнес-ключ и hash key сущности production_day; атрибуты вынесены в satellites.
--- AS IS: oil_dds.hub_production_day в GP; выбранная исходная бизнес-сущность.
--- TO BE: REFRESH: отдельный выпуск из pinned INITIAL и полного raw-окна [C0,C1).
--- Отличие: INITIAL не изменяется; source GP для пересчёта не перечитывается. Версии/удаления применяет целевой SQL.
--- Конец контекста миграции.
--- Хранит бизнес-идентификатор скважино-дня добычи и детерминированный hash key. Не содержит изменяемых описательных атрибутов.
--- Engine: spark. Столбцы INSERT берутся в порядке DDL, не по позиции исходного SELECT.
--- REFRESH: закреплённый INITIAL + весь диапазон C0–C1; исключены более поздние offsets.
+-- Создаём уникальные ключи скважино-дня по согласованному production business ID. Это целевой SQL-этап вместо части apply_batch GP.
 WITH candidates AS
     (SELECT md5(concat('production:', e.entity_id)) AS production_hk,
             e.entity_id AS production_id,{{cut_time}} AS load_dts,

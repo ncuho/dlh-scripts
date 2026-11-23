@@ -1,12 +1,4 @@
--- Контекст миграции: AS IS / TO BE.
--- Назначение: Хранит версии атрибутов daily_production, происхождение, порядок версий и операции изменения.
--- AS IS: oil_dds.sat_daily_production в GP; выбранная исходная бизнес-сущность.
--- TO BE: Cedrus исполняет только проверки текущей phase и both; публикация разрешена при нулевых нарушениях.
--- Отличие: PK/FK/UNIQUE Iceberg не обеспечивает; SQL проверяет grain, дубли, ссылки, SCD2 и равенство на C0/C1.
--- Конец контекста миграции.
--- Проверка: sat_production_initial_exact; phase=initial
 -- Полное исходное равенство, включая decimal, даты, hashdiff и аудит.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 SELECT count(*) AS n
 FROM (
           (SELECT production_hk,
@@ -63,9 +55,8 @@ FROM (
                              status
            FROM {{source:oil_dds__sat_daily_production}})) q;
 
--- Проверка: sat_production_initial_retained; phase=refresh
+
 -- Сохранение всех первоначальных версий и аудита.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 SELECT count(*) AS n
 FROM
     (SELECT production_hk,
@@ -95,9 +86,8 @@ FROM
                        status
      FROM {{target:oil_dds__sat_daily_production}}) q;
 
--- Проверка: sat_production_business; phase=both
+
 -- Полная история production_day, включая D; независимая проверка ключей, hashdiff, даты и numeric(18,3).
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 WITH expected AS
     (SELECT lower(to_hex(md5(to_utf8('production:' || entity_id)))) AS production_hk,
             lower(to_hex(md5(to_utf8('production_day_well:' || entity_id || ':' || json_extract_scalar(payload, '$.well_id'))))) AS link_hk,
@@ -135,9 +125,8 @@ FROM (
            EXCEPT ALL SELECT *
            FROM expected)) q;
 
--- Проверка: sat_production_keys_and_references; phase=both
+
 -- Уникальность событий и версий, связи с hub/link/event, ненулевые результаты обязательных преобразований.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 SELECT count(*) AS n
 FROM
     (SELECT event_id AS k

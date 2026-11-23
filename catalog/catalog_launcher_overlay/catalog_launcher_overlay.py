@@ -1,9 +1,5 @@
-# Контекст миграции: AS IS / TO BE.
-# Назначение: Расширяет MCP каталога узкими операциями удаления BI-lineage и обновления описаний разрешённых BI-объектов.
-# AS IS: Catalog описывает source tables, функции, Kafka и BI lineage.
-# TO BE: Регистрирует фактические target-таблицы, обработку и связи до BI.
-# Отличие: Метаданные не переносят данные; lineage должен соответствовать реальному SQL и фактическому выпуску.
-# Конец контекста миграции.
+# Расширяет MCP каталога узкими операциями удаления BI-lineage и обновления описаний разрешённых BI-объектов.
+# Метаданные не переносят данные; lineage должен соответствовать реальному SQL и фактическому выпуску.
 """OpenMetadata MCP launcher (streamable-http).
 
 Obtains a fresh OpenMetadata JWT at startup (via login when username/password are
@@ -48,7 +44,7 @@ def _login():
 def _resolve_token():
     """Получает актуальный токен из штатного источника, не сохраняя его в Git или каталоге."""
     if JWT:
-        return JWT, False  # static token, no refresh
+        return JWT, False  # Static token, no refresh
     if USERNAME and PASSWORD:
         return _login()["accessToken"], True
     raise ValueError(
@@ -69,7 +65,7 @@ def _refresher():
             new_token = _login()["accessToken"]
             client.session.headers["Authorization"] = "Bearer " + new_token
             log.info("OpenMetadata JWT refreshed")
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:  # Noqa: BLE001
             log.warning("OpenMetadata JWT refresh failed: %s", exc)
 
 
@@ -95,7 +91,7 @@ log.info("Total registered tools: %d", registered_count)
 # OpenMetadata 2.x models the ontology on the GlossaryTerm entity: fields `iri`,
 # `conceptType`, `conceptMappings`, `attributes`, `relatedTerms` (typed relations),
 # `references`, `realizedIn`. These wrap /api/v1/glossaryTerms so the agent can both
-# form (create/update) and parse (read) the ontology.
+# Form (create/update) and parse (read) the ontology.
 
 
 def _om(method, endpoint, params=None, json_data=None):
@@ -261,8 +257,8 @@ app.add_tool(
 )
 
 # Bind 0.0.0.0 so the pod is reachable; host/port configurable via env.
-# stateless_http + json_response: match the Trino MCP server (avoids 421 session errors
-# for the AI Space skill client, which uses simple request/response without SSE sessions).
+# Stateless_http + json_response: match the Trino MCP server (avoids 421 session errors
+# For the AI Space skill client, which uses simple request/response without SSE sessions).
 app.settings.stateless_http = True
 app.settings.json_response = True
 # Allow any Host header: we sit behind HAProxy (which does IP filtering), and the

@@ -1,9 +1,5 @@
-# Контекст миграции: AS IS / TO BE.
-# Назначение: Loads each versioned SQL entity in dependency order. Production has 12 domain calculations, performance 19; canonical input/event are built separately. Use remote Spark Connect, UTC and immutable release namespaces.
-# AS IS: Source-расчёты выполняются функциями GP.
-# TO BE: Удалённый Spark Connect исполняет SQL в порядке зависимостей.
-# Отличие: Compute отделён от Iceberg/S3; локальный Spark не подменяет кластер и не получает source GRANT автоматически.
-# Конец контекста миграции.
+# Loads each versioned SQL entity in dependency order. Production has 12 domain calculations, performance 19; canonical input/event are built separately. Use remote Spark Connect, UTC and immutable release namespaces.
+# Compute отделён от Iceberg/S3; локальный Spark не подменяет кластер и не получает source GRANT автоматически.
 """Reviewed Spark SQL for the prepared source case. No local Spark or credentials."""
 from pathlib import Path
 import re

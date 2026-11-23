@@ -1,9 +1,4 @@
--- Контекст миграции: AS IS / TO BE.
--- Назначение: Объединяет добычу и простои для отчёта эффективности.
--- AS IS: GP предоставляет view конечному отчёту.
--- TO BE: Cedrus предоставляет target serving над принятым Iceberg release.
--- Отличие: Binding меняется после сверок и grants; исходный отчёт не удаляется.
--- Конец контекста миграции.
+-- Объединяет добычу и простои для отчёта эффективности.
 CREATE TABLE dlh.oil_demo_template.field_performance WITH (
     format = 'PARQUET'
 ) AS

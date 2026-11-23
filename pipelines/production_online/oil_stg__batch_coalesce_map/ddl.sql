@@ -1,10 +1,4 @@
--- Контекст миграции: AS IS / TO BE.
--- Назначение: Связывает исходные партии с объединённой партией аудита.
--- AS IS: oil_stg.batch_coalesce_map в GP; выбранная исходная бизнес-сущность.
--- TO BE: Cedrus создаёт пустую физическую Iceberg-таблицу oil_stg__batch_coalesce_map в namespace выпуска.
--- Отличие: View материализуется, если исходник — view; PK/FK/distribution не объявляются гарантиями Iceberg.
--- Конец контекста миграции.
--- Cedrus/Trino. Малый immutable release: Parquet v2, без искусственных PK/FK.
+-- Связывает исходные партии с объединённой партией аудита.
 CREATE TABLE {{target:oil_stg__batch_coalesce_map}} (
     "original_batch_id" bigint,
     "coalesced_batch_id" bigint,

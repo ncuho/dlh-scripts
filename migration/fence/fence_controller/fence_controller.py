@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
-# Контекст миграции: AS IS / TO BE.
-# Назначение: Адаптер ограниченного SSH-вызова acquire/status/release удалённого контроллера fence.
-# AS IS: Старый offline-маршрут удерживает source boundary и producer fence.
-# TO BE: Сохранён для совместимости; текущая online-цепочка использует bridge_capture.
-# Отличие: Этот адаптер не требуется запускать для online INITIAL/REFRESH.
-# Конец контекста миграции.
+# Адаптер ограниченного SSH-вызова acquire/status/release удалённого контроллера fence.
+# Этот адаптер не требуется запускать для online INITIAL/REFRESH.
 """Fixed command-only SSH relay; lease JSON passes only through stdin/stdout."""
 import os, subprocess, sys, tempfile
 from pathlib import Path

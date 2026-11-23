@@ -1,12 +1,4 @@
--- Контекст миграции: AS IS / TO BE.
--- Назначение: Хранит следующий принятый offset каждой исходной Kafka-партиции.
--- AS IS: oil_stg.kafka_checkpoint в GP; выбранная исходная бизнес-сущность.
--- TO BE: Cedrus исполняет только проверки текущей phase и both; публикация разрешена при нулевых нарушениях.
--- Отличие: PK/FK/UNIQUE Iceberg не обеспечивает; SQL проверяет grain, дубли, ссылки, SCD2 и равенство на C0/C1.
--- Конец контекста миграции.
--- Проверка: initial_full_equality; phase=initial
--- INITIAL: точное сохранение исходной границы и её аудита.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
+-- Точное сохранение исходной границы и её аудита.
 WITH s AS
     (SELECT topic,
             kafka_partition,
@@ -32,9 +24,8 @@ WITH s AS
 SELECT count(*) AS n
 FROM d;
 
--- Проверка: initial_checkpoint_coordinates; phase=initial
--- INITIAL: обязательность и единственность границы для каждой представленной партиции.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
+
+-- Обязательность и единственность границы для каждой представленной партиции.
 SELECT count(*) AS n
 FROM
     (SELECT topic,
@@ -51,9 +42,8 @@ FROM
      WHERE next_offset IS NULL
          OR updated_at IS NULL) q;
 
--- Проверка: initial_raw_below_checkpoint; phase=initial
--- INITIAL: у каждой сырой позиции есть checkpoint, и позиция строго меньше next_offset; это не доказывает полноту истории.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
+
+-- У каждой сырой позиции есть checkpoint, и позиция строго меньше next_offset; это не доказывает полноту истории.
 SELECT count(*) AS n
 FROM {{target:oil_stg__event_log}} r
 WHERE NOT EXISTS

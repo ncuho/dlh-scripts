@@ -1,12 +1,4 @@
--- Контекст миграции: AS IS / TO BE.
--- Назначение: Связывает суточную добычу с действовавшими версиями измерений.
--- AS IS: oil_mart.fact_well_day в GP; выбранная исходная бизнес-сущность.
--- TO BE: Cedrus исполняет только проверки текущей phase и both; публикация разрешена при нулевых нарушениях.
--- Отличие: PK/FK/UNIQUE Iceberg не обеспечивает; SQL проверяет grain, дубли, ссылки, SCD2 и равенство на C0/C1.
--- Конец контекста миграции.
--- Проверка: initial_full_equality; phase=both
--- INITIAL: полное равенство факта, выбранных версий измерений, статуса и добычи.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
+-- Полное равенство факта, выбранных версий измерений, статуса и добычи.
 WITH s AS
     (SELECT production_hk,
             well_hk,
@@ -40,9 +32,8 @@ WITH s AS
 SELECT count(*) AS n
 FROM d;
 
--- Проверка: production_dimension_cardinality; phase=both
--- INITIAL/REFRESH: каждой последней U-версии соответствует ровно одна строка факта.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
+
+-- Каждой последней U-версии соответствует ровно одна строка факта.
 WITH p AS
     (SELECT production_hk,
             op,
@@ -58,9 +49,8 @@ WHERE rn=1
          FROM {{target:oil_mart__fact_well_day}} f
          WHERE f.production_hk=p.production_hk)<>1;
 
--- Проверка: well_status_consistency; phase=both
--- INITIAL/REFRESH: исходная проверка согласованности статуса и нулевой добычи INACTIVE.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
+
+-- Исходная проверка согласованности статуса и нулевой добычи INACTIVE.
 SELECT count(*) AS n
 FROM {{target:oil_mart__fact_well_day}} p
 JOIN {{target:oil_mart__dim_well}} w ON p.well_hk=w.well_hk
@@ -69,9 +59,8 @@ WHERE p.status<>w.status
     OR (p.status='INACTIVE'
         AND p.oil_tonnes<>0);
 
--- Проверка: fact_rebuild_equality; phase=both
--- INITIAL/REFRESH: полное равенство повторному построению; выявляет лишние факты, удаления и неверный выбор SCD2.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
+
+-- Полное равенство повторному построению; выявляет лишние факты, удаления и неверный выбор SCD2.
 WITH p AS
     (SELECT production_hk,
             link_hk,

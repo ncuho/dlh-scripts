@@ -1,9 +1,4 @@
--- Контекст миграции: AS IS / TO BE.
--- Назначение: Хранит историю связи production_day_well через hash keys связанных hubs.
--- AS IS: PL/pgSQL GP строит Vault-проекции и Kimball-модель внутри БД.
--- TO BE: Spark SELECT строит сущность из canonical history в согласованном release.
--- Отличие: Этот набор использует альтернативную canonical-модель; текущий production_online нельзя подменять им без review.
--- Конец контекста миграции.
+-- Связываем production business key с well key по исходному payload. Это целевой SQL-этап вместо части apply_batch GP.
 SELECT DISTINCT
   LOWER(
     HEX(

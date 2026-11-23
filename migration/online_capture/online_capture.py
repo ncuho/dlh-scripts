@@ -1,9 +1,5 @@
-# Контекст миграции: AS IS / TO BE.
-# Назначение: Фиксирует и проверяет согласованные GP captures C0/C1 и их безопасную очистку.
-# AS IS: Исходная цепочка работает в GP; инженер вручную исследует, переносит и сверяет сущности.
-# TO BE: Bridge оркестрирует те же сервисы по принятому плану, коду и проверкам.
-# Отличие: Агент предлагает план/SQL; разрешённый исполнитель применяет принятые операции. Source не удаляется автоматически.
-# Конец контекста миграции.
+# Фиксирует и проверяет согласованные GP captures C0/C1 и их безопасную очистку.
+# Агент предлагает план/SQL; разрешённый исполнитель применяет принятые операции. Source не удаляется автоматически.
 """Materialize one consistent GP image without stopping a Kafka producer.
 
 The guarded SQL service queues GP writes only for the short capture transaction.
@@ -96,7 +92,7 @@ def capture(spec, namespace, initial=None):
     finally:
         conn.close()
     # From this point the data image is durable and GP accepts new batches while
-    # target copying, transformations, and comparisons may take minutes or hours.
+    # Target copying, transformations, and comparisons may take minutes or hours.
     actual = observe(binding)
     verify(manifest, expected, actual, planned, initial)
     manifest.update(topic_id=actual['topic_id'], cluster_id=actual['cluster_id'],

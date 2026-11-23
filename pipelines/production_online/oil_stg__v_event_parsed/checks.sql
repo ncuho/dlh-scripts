@@ -1,12 +1,4 @@
--- Контекст миграции: AS IS / TO BE.
--- Назначение: Извлекает поля envelope и payload без потери исходного JSON.
--- AS IS: oil_stg.v_event_parsed в GP; выбранная исходная бизнес-сущность.
--- TO BE: Cedrus исполняет только проверки текущей phase и both; публикация разрешена при нулевых нарушениях.
--- Отличие: PK/FK/UNIQUE Iceberg не обеспечивает; SQL проверяет grain, дубли, ссылки, SCD2 и равенство на C0/C1.
--- Конец контекста миграции.
--- Проверка: parsed_initial_exact; phase=initial
 -- Полное сравнение INITIAL с исходным parsed STG, включая точный текст payload и исходные batch_id.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 SELECT count(*) AS n
 FROM (
           (SELECT batch_id,
@@ -67,9 +59,8 @@ FROM (
                              payload
            FROM {{source:oil_stg__v_event_parsed}})) q;
 
--- Проверка: parsed_current_stage_business; phase=both
+
 -- Мультимножество бизнес-полей соответствует текущему STG. Batch ID исключён; JSON payload здесь сравнивается по JSON-представлению, его точный текст дополнительно проверяется INITIAL и stage-to-ledger.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 WITH stage AS
     (SELECT topic,
             kafka_partition,
@@ -117,9 +108,8 @@ FROM (
            EXCEPT ALL SELECT *
            FROM expected)) q;
 
--- Проверка: parsed_positions_and_conflicts; phase=both
+
 -- Повторные одинаковые доставки допустимы; конфликт JSON на позиции или event_id, а также конфликт версии запрещены.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 SELECT count(*) AS n
 FROM
     (SELECT min(event_id) AS k
@@ -146,9 +136,8 @@ FROM
               entity_version
      HAVING count(DISTINCT event_id)>1) q;
 
--- Проверка: parsed_envelope_validation; phase=both
+
 -- Исходные обязательные ограничения envelope и соответствие ID внутри payload; ошибки JSON и преобразований дают нарушения.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 WITH p AS
     (SELECT e.*,
             try(json_parse(event_json)) AS j,
@@ -189,9 +178,8 @@ WHERE batch_id IS NULL
                                END) IS DISTINCT
     FROM entity_id;
 
--- Проверка: parsed_field_well_validation; phase=both
+
 -- Обязательные атрибуты field/well и поддерживаемая ISO-дата valid_from; D проверяется так же, как U.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 WITH p AS
     (SELECT event_type,
             try(json_parse(payload)) AS j
@@ -212,9 +200,8 @@ WHERE (event_type='field'
              OR json_extract_scalar(j, '$.status') NOT IN ('ACTIVE',
                                                            'INACTIVE')));
 
--- Проверка: parsed_production_validation; phase=both
+
 -- Ограничения production_day, составной ID и decimal(18,3). Отрицательное исходное число отвергается даже при округлении к нулю.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 WITH p AS
     (SELECT entity_id,
             try(json_parse(payload)) AS j
@@ -245,9 +232,8 @@ WHERE well_id IS NULL
     OR entity_id IS DISTINCT
     FROM (well_id || '_' || replace(production_date, '-', ''));
 
--- Проверка: parsed_downtime_validation; phase=both
+
 -- Downtime остаётся в ledger и проходит исходные ограничения интервала. Дата конца учитывает исключённую последнюю микросекунду без потери точности на полуночи.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 WITH p AS
     (SELECT try(json_parse(payload)) AS j
      FROM {{target:oil_stg__v_event_parsed}}

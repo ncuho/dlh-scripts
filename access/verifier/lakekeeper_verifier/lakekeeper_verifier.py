@@ -1,9 +1,5 @@
-# Контекст миграции: AS IS / TO BE.
-# Назначение: Read-only сервис проверки актуальных snapshots, table-level grants и отсутствия избыточного родительского доступа перед публикацией.
-# AS IS: Source-доступ осуществляется через GP, TLS и зарегистрированные identities.
-# TO BE: Настраивает проверяемый транспорт/доверие или verifier target-сервисов.
-# Отличие: Это инфраструктурный доступ, а не автоматический перенос бизнес-ролей; TLS не отключается ради миграции.
-# Конец контекста миграции.
+# Read-only сервис проверки актуальных snapshots, table-level grants и отсутствия избыточного родительского доступа перед публикацией.
+# Это инфраструктурный доступ, а не автоматический перенос бизнес-ролей; TLS не отключается ради миграции.
 """Read-only serving grant verifier. No credentials or arbitrary URLs in output."""
 
 import json
@@ -123,7 +119,7 @@ def verify(value):
     ns_path = "/management/v1/permissions/namespace/" + ns_id
     wh_path = "/management/v1/permissions/warehouse/" + WAREHOUSE
     # Explicit select/modify/create/ownership grants at parent scope would grant
-    # access beyond serving tables; only optional describe is permitted.
+    # Access beyond serving tables; only optional describe is permitted.
     if not set(assignments(ns_path)).issubset({"describe"}) or not set(
         assignments(wh_path)
     ).issubset({"describe"}):

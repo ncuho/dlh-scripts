@@ -1,14 +1,4 @@
--- Контекст миграции: AS IS / TO BE.
--- Назначение: Read-only SQL-проверки качества, полноты и согласованности результатов двух контуров.
--- AS IS: Исходные показатели вычисляются в GP.
--- TO BE: Read-only SQL показывает или сверяет принятые target-показатели через Cedrus.
--- Отличие: Имена таблиц и границы должны относиться к одному release; это не команда повторной загрузки.
--- Конец контекста миграции.
--- DRAFT: 12 full multiset comparisons; replace identifiers only with verified FQNs.
--- GP tables must be frozen at the approved cut; read Iceberg output at the exact manifest snapshot.
--- This template uses table heads: verify each head equals its manifest snapshot before execution.
--- Validate timestamp and DECIMAL mappings, EXCEPT ALL semantics and connector support.
--- oil_dds.hub_field: zero rows required, with multiplicity.
+-- Читает выбранные колонки из источников этого SELECT.
 WITH s AS (
     SELECT
         field_hk,
@@ -61,7 +51,8 @@ SELECT
 FROM
     minus_s;
 
--- oil_dds.hub_well: zero rows required, with multiplicity.
+
+-- Читает выбранные колонки из источников этого SELECT.
 WITH s AS (
     SELECT
         well_hk,
@@ -114,7 +105,8 @@ SELECT
 FROM
     minus_s;
 
--- oil_dds.hub_production_day: zero rows required, with multiplicity.
+
+-- Читает выбранные колонки из источников этого SELECT.
 WITH s AS (
     SELECT
         production_hk,
@@ -167,7 +159,8 @@ SELECT
 FROM
     minus_s;
 
--- oil_dds.link_well_field: zero rows required, with multiplicity.
+
+-- Читает выбранные колонки из источников этого SELECT.
 WITH s AS (
     SELECT
         link_hk,
@@ -222,7 +215,8 @@ SELECT
 FROM
     minus_s;
 
--- oil_dds.link_production_day_well: zero rows required, with multiplicity.
+
+-- Читает выбранные колонки из источников этого SELECT.
 WITH s AS (
     SELECT
         link_hk,
@@ -277,7 +271,8 @@ SELECT
 FROM
     minus_s;
 
--- oil_dds.sat_field: zero rows required, with multiplicity.
+
+-- Читает выбранные колонки из источников этого SELECT.
 WITH s AS (
     SELECT
         field_hk,
@@ -342,7 +337,8 @@ SELECT
 FROM
     minus_s;
 
--- oil_dds.sat_well: zero rows required, with multiplicity.
+
+-- Читает выбранные колонки из источников этого SELECT.
 WITH s AS (
     SELECT
         well_hk,
@@ -411,7 +407,8 @@ SELECT
 FROM
     minus_s;
 
--- oil_dds.sat_daily_production: zero rows required, with multiplicity.
+
+-- Читает выбранные колонки из источников этого SELECT.
 WITH s AS (
     SELECT
         production_hk,
@@ -480,7 +477,8 @@ SELECT
 FROM
     minus_s;
 
--- oil_mart.dim_field: zero rows required, with multiplicity.
+
+-- Читает выбранные колонки из источников этого SELECT.
 WITH s AS (
     SELECT
         field_hk,
@@ -539,7 +537,8 @@ SELECT
 FROM
     minus_s;
 
--- oil_mart.dim_well: zero rows required, with multiplicity.
+
+-- Читает выбранные колонки из источников этого SELECT.
 WITH s AS (
     SELECT
         well_hk,
@@ -600,7 +599,8 @@ SELECT
 FROM
     minus_s;
 
--- oil_mart.fact_well_day: zero rows required, with multiplicity.
+
+-- Читает выбранные колонки из источников этого SELECT.
 WITH s AS (
     SELECT
         production_hk,
@@ -661,7 +661,8 @@ SELECT
 FROM
     minus_s;
 
--- oil_mart.agg_field_day: zero rows required, with multiplicity.
+
+-- Читает выбранные колонки из источников этого SELECT.
 WITH s AS (
     SELECT
         production_date,

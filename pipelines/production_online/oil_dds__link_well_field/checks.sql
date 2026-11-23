@@ -1,12 +1,4 @@
--- Контекст миграции: AS IS / TO BE.
--- Назначение: Хранит историю связи well_field через hash keys связанных hubs.
--- AS IS: oil_dds.link_well_field в GP; выбранная исходная бизнес-сущность.
--- TO BE: Cedrus исполняет только проверки текущей phase и both; публикация разрешена при нулевых нарушениях.
--- Отличие: PK/FK/UNIQUE Iceberg не обеспечивает; SQL проверяет grain, дубли, ссылки, SCD2 и равенство на C0/C1.
--- Конец контекста миграции.
--- Проверка: link_well_field_initial_exact; phase=initial
 -- Точная INITIAL-копия связи с исходным аудитом.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 SELECT count(*) AS n
 FROM (
           (SELECT link_hk,
@@ -35,9 +27,8 @@ FROM (
                              record_source
            FROM {{source:oil_dds__link_well_field}})) q;
 
--- Проверка: link_well_field_initial_retained; phase=refresh
+
 -- Исходные отношения и аудит сохранены.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 SELECT count(*) AS n
 FROM
     (SELECT link_hk,
@@ -53,9 +44,8 @@ FROM
                        record_source
      FROM {{target:oil_dds__link_well_field}}) q;
 
--- Проверка: link_well_field_business; phase=both
+
 -- Проверка всех исторических отношений well—field и исходных формул ключей.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 WITH expected AS
     (SELECT DISTINCT lower(to_hex(md5(to_utf8('well_field:' || entity_id || ':' || json_extract_scalar(payload, '$.field_id'))))) AS link_hk,
                      lower(to_hex(md5(to_utf8('well:' || entity_id)))) AS well_hk,
@@ -79,9 +69,8 @@ FROM (
            EXCEPT ALL SELECT *
            FROM expected)) q;
 
--- Проверка: link_well_field_keys_and_references; phase=both
+
 -- Уникальность hash/pair и наличие обоих родителей.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 SELECT count(*) AS n
 FROM
     (SELECT link_hk AS k

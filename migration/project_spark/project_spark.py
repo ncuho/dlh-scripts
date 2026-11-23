@@ -1,9 +1,5 @@
-# Контекст миграции: AS IS / TO BE.
-# Назначение: Подключает Spark через отдельный Jupyter kernel и сохраняет durable результаты команд.
-# AS IS: Исходная цепочка работает в GP; инженер вручную исследует, переносит и сверяет сущности.
-# TO BE: Bridge оркестрирует те же сервисы по принятому плану, коду и проверкам.
-# Отличие: Агент предлагает план/SQL; разрешённый исполнитель применяет принятые операции. Source не удаляется автоматически.
-# Конец контекста миграции.
+# Подключает Spark через отдельный Jupyter kernel и сохраняет durable результаты команд.
+# Агент предлагает план/SQL; разрешённый исполнитель применяет принятые операции. Source не удаляется автоматически.
 """Airflow-side Spark Connect adapter using an isolated Jupyter kernel per run."""
 import json
 import os
@@ -118,7 +114,7 @@ class SparkClient:
         fingerprint=hashlib.sha256(code.encode()).hexdigest()
         receipt='/home/admin/.platform_bridge_results/'+self.name+'/'+token+'.json'
         # Only the PB_RESULT JSON enters the durable record: no arbitrary stdout,
-        # connection configuration, credentials or agent code is archived here.
+        # Connection configuration, credentials or agent code is archived here.
         wrapped="""import contextlib as _pb_ctx,io as _pb_io,json as _pb_json,os as _pb_os
 from pathlib import Path as _pb_Path
 _pb_file=_pb_Path(RECEIPT)

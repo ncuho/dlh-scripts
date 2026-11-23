@@ -1,9 +1,4 @@
--- Контекст миграции: AS IS / TO BE.
--- Назначение: Хранит историю связи downtime_well через hash keys связанных hubs.
--- AS IS: PL/pgSQL GP строит Vault-проекции и Kimball-модель внутри БД.
--- TO BE: Spark SELECT строит сущность из canonical history в согласованном release.
--- Отличие: Этот набор использует альтернативную canonical-модель; текущий production_online нельзя подменять им без review.
--- Конец контекста миграции.
+-- Связываем ключ интервала простоя со скважиной, сохраняя ту же формулу hash key. Это целевой SQL-этап вместо части apply_batch GP.
 SELECT DISTINCT
   LOWER(
     HEX(

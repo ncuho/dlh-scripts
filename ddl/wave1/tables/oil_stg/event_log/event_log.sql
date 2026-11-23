@@ -1,9 +1,4 @@
--- Контекст миграции: AS IS / TO BE.
--- Назначение: Сохраняет JSON доставок с topic, partition, offset и исходной партией.
--- AS IS: Исходные схемы/таблицы GP с тем же бизнес-контрактом.
--- TO BE: Сохранённый вариант прямых Iceberg-копий в oil_stg/oil_dds/oil_mart.
--- Отличие: Текущий online-контракт использует префиксы внутри release namespace; не смешивайте эти DDL с production_online.
--- Конец контекста миграции.
+-- Сохраняет JSON доставок с topic, partition, offset и исходной партией.
 CREATE TABLE dlh.oil_stg.event_log WITH (
     format = 'PARQUET'
 ) AS

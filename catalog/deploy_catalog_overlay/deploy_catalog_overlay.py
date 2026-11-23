@@ -1,9 +1,5 @@
-# Контекст миграции: AS IS / TO BE.
-# Назначение: Подключает versioned overlay к MCP через ConfigMap. После Helm/XaaS reconcile требуется сверка и при необходимости reapply.
-# AS IS: Catalog описывает source tables, функции, Kafka и BI lineage.
-# TO BE: Регистрирует фактические target-таблицы, обработку и связи до BI.
-# Отличие: Метаданные не переносят данные; lineage должен соответствовать реальному SQL и фактическому выпуску.
-# Конец контекста миграции.
+# Подключает versioned overlay к MCP через ConfigMap. После Helm/XaaS reconcile требуется сверка и при необходимости reapply.
+# Метаданные не переносят данные; lineage должен соответствовать реальному SQL и фактическому выпуску.
 """Deploy persistent ConfigMap overlay to current deployment; chart source must also adopt it."""
 
 import hashlib, json, subprocess

@@ -1,12 +1,4 @@
--- Контекст миграции: AS IS / TO BE.
--- Назначение: Извлекает поля envelope и payload без потери исходного JSON.
--- AS IS: oil_stg.v_event_parsed в GP; выбранная исходная бизнес-сущность.
--- TO BE: INITIAL C0: перенос сохранённой исходной истории или расчёт производной проекции по dependencies.
--- Отличие: Источник раскрывается в immutable capture; историю аудита копирует Cedrus, производные Marts считает Spark.
--- Конец контекста миграции.
--- Разбирает envelope JSON в STG: тип, ID, версию, операцию, время и payload без изменения исходного документа.
--- Engine: spark. Столбцы INSERT берутся в порядке DDL, не по позиции исходного SELECT.
--- INITIAL: согласованный исходный образ C0; исторический аудит не пересоздаётся.
+-- Spark извлекает envelope; bridge_json_payload сохраняет точный JSON payload, чтобы hashdiff совпал с GP. Это Spark-проекция вместо исходного view GP.
 SELECT batch_id,
        topic,
        kafka_partition,

@@ -1,12 +1,4 @@
--- Контекст миграции: AS IS / TO BE.
--- Назначение: Хранит историю связи production_day_well через hash keys связанных hubs.
--- AS IS: oil_dds.link_production_day_well в GP; выбранная исходная бизнес-сущность.
--- TO BE: REFRESH: отдельный выпуск из pinned INITIAL и полного raw-окна [C0,C1).
--- Отличие: INITIAL не изменяется; source GP для пересчёта не перечитывается. Версии/удаления применяет целевой SQL.
--- Конец контекста миграции.
--- Хранит историческую связь скважино-дня со скважиной по техническим ключам. Изменяемые атрибуты находятся в satellites.
--- Engine: spark. Столбцы INSERT берутся в порядке DDL, не по позиции исходного SELECT.
--- REFRESH: закреплённый INITIAL + весь диапазон C0–C1; исключены более поздние offsets.
+-- Связываем production business key с well key по исходному payload. Это целевой SQL-этап вместо части apply_batch GP.
 WITH fresh AS
     (SELECT e.entity_id,
             get_json_object(e.payload, '$.well_id') AS well_id,

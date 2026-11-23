@@ -1,9 +1,5 @@
-# Контекст миграции: AS IS / TO BE.
-# Назначение: Read-only verifier подтверждает table UUID, snapshot и effective SELECT CIAM-backed reader. Для production проверяет agg_field_day, для performance также field_performance; запрещает расширенные права на родительских объектах. Развёрнут sid.
-# AS IS: GP использует PostgreSQL роли, GRANT и ограничения source-доступа.
-# TO BE: LakeKeeper назначает действия CIAM identity/role на namespace или table UUID; Superset проверяется отдельно.
-# Отличие: Права не копируются SQL GRANT из GP; новый UUID выпуска требует нового назначения и проверки.
-# Конец контекста миграции.
+# Read-only verifier подтверждает table UUID, snapshot и effective SELECT CIAM-backed reader. Для production проверяет agg_field_day, для performance также field_performance; запрещает расширенные права на родительских объектах. Развёрнут sid.
+# Права не копируются SQL GRANT из GP; новый UUID выпуска требует нового назначения и проверки.
 """Read-only serving grant verifier. No credentials or arbitrary URLs in output."""
 import json
 import hmac
@@ -92,7 +88,7 @@ def verify(value):
     ns_path = '/management/v1/permissions/namespace/' + ns_id
     wh_path = '/management/v1/permissions/warehouse/' + WAREHOUSE
     # Explicit select/modify/create/ownership grants at parent scope would grant
-    # access beyond serving tables; only optional describe is permitted.
+    # Access beyond serving tables; only optional describe is permitted.
     if not set(assignments(ns_path)).issubset({'describe'}) or not set(assignments(wh_path)).issubset({'describe'}):
         raise RuntimeError('unexpected parent assignment')
     actions(ns_path, NAMESPACE_ALLOWED)

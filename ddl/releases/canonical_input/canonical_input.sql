@@ -1,10 +1,4 @@
--- Контекст миграции: AS IS / TO BE.
--- Назначение: Объединяет закреплённую историю и ограниченное окно raw.
--- AS IS: История событий и GP-расчёты обеих исходных веток.
--- TO BE: Альтернативная release-проекция с canonical_input/event и размерными моделями.
--- Отличие: Сохранённый маршрут; production_online первой волны имеет собственный 20-объектный контракт.
--- Конец контекста миграции.
--- Review template; runner renders validated identifiers, snapshots and every partition window.
+-- Объединяет закреплённую историю и ограниченное окно raw.
 CREATE TABLE dlh.__RELEASE_SCHEMA__.canonical_input
 WITH (format = 'PARQUET') AS
 SELECT event_document AS document

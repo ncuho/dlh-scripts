@@ -1,12 +1,4 @@
--- Контекст миграции: AS IS / TO BE.
--- Назначение: Сохраняет JSON доставок с topic, partition, offset и исходной партией.
--- AS IS: oil_stg.event_log в GP; выбранная исходная бизнес-сущность.
--- TO BE: Cedrus исполняет только проверки текущей phase и both; публикация разрешена при нулевых нарушениях.
--- Отличие: PK/FK/UNIQUE Iceberg не обеспечивает; SQL проверяет grain, дубли, ссылки, SCD2 и равенство на C0/C1.
--- Конец контекста миграции.
--- Проверка: initial_full_equality; phase=initial
--- INITIAL: полное мультимножественное равенство сырья и исходных audit-полей на закреплённой границе.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
+-- Полное мультимножественное равенство сырья и исходных audit-полей на закреплённой границе.
 WITH s AS
     (SELECT topic,
             kafka_partition,
@@ -36,9 +28,8 @@ WITH s AS
 SELECT count(*) AS n
 FROM d;
 
--- Проверка: raw_coordinates; phase=both
--- INITIAL/REFRESH: обязательные координаты и документ; одна строка на позицию Kafka.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
+
+-- Обязательные координаты и документ; одна строка на позицию Kafka.
 SELECT count(*) AS n
 FROM
     (SELECT topic,
@@ -60,9 +51,8 @@ FROM
          OR received_at IS NULL
          OR batch_id IS NULL) q;
 
--- Проверка: refresh_position_conflicts; phase=both
--- REFRESH: повтор позиции Kafka с другим исходным JSON запрещает публикацию.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
+
+-- Повтор позиции Kafka с другим исходным JSON запрещает публикацию.
 WITH r AS
     (SELECT topic,
             kafka_partition,
@@ -86,9 +76,8 @@ FROM
      HAVING count(DISTINCT event_json)>1
      OR count(event_json)<>count(*)) q;
 
--- Проверка: refresh_delta_coverage; phase=both
--- REFRESH: каждая доставка delta представлена в результате той же позицией и тем же документом.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
+
+-- Каждая доставка delta представлена в результате той же позицией и тем же документом.
 SELECT count(*) AS n
 FROM {{delta}} d
 WHERE NOT EXISTS

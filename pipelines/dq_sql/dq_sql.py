@@ -1,9 +1,5 @@
-# Контекст миграции: AS IS / TO BE.
-# Назначение: gates(schema, chain) проверяет контракт событий, версии, SCD2 и покрытие фактов. comparisons(schema, chain) сравнивает полную историю и бизнес-таблицы через двусторонний EXCEPT ALL на одной удерживаемой границе. Каждый результат должен быть.
-# AS IS: GP-ограничения и проверки исходных функций защищают source.
-# TO BE: SQL-гейты выявляют дубли, сироты, версии и расхождения перед publication.
-# Отличие: Успешный INSERT или count без нарушений не заменяет полный набор проверок.
-# Конец контекста миграции.
+# Gates(schema, chain) проверяет контракт событий, версии, SCD2 и покрытие фактов. comparisons(schema, chain) сравнивает полную историю и бизнес-таблицы через двусторонний EXCEPT ALL на одной удерживаемой границе. Каждый результат должен быть.
+# Успешный INSERT или count без нарушений не заменяет полный набор проверок.
 """Read-only DQ gates and two-way Greenplum comparisons for oil releases.
 
 A zero result for every query is necessary, not proof of a frozen source cut.
@@ -80,7 +76,7 @@ def comparisons(schema, chain="performance"):
     if not SCHEMA.fullmatch(schema):
         raise ValueError("invalid release schema")
     # Compare complete event history, not just a few business aggregates. The
-    # target has exactly one copy of each byte-identical replay by construction.
+    # Target has exactly one copy of each byte-identical replay by construction.
     source_events = "SELECT event_document AS document FROM greenplum_gp.oil_dds.event WHERE event_type IN ('field','well','production_day','downtime')"
     if chain == "production":
         source_events = source_events.replace(",'downtime'", "")

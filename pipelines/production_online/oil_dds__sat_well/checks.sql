@@ -1,12 +1,4 @@
--- Контекст миграции: AS IS / TO BE.
--- Назначение: Хранит версии атрибутов well, происхождение, порядок версий и операции изменения.
--- AS IS: oil_dds.sat_well в GP; выбранная исходная бизнес-сущность.
--- TO BE: Cedrus исполняет только проверки текущей phase и both; публикация разрешена при нулевых нарушениях.
--- Отличие: PK/FK/UNIQUE Iceberg не обеспечивает; SQL проверяет grain, дубли, ссылки, SCD2 и равенство на C0/C1.
--- Конец контекста миграции.
--- Проверка: sat_well_initial_exact; phase=initial
 -- Точная исходная копия всех версий well, включая дату, hashdiff и аудит.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 SELECT count(*) AS n
 FROM (
           (SELECT well_hk,
@@ -63,9 +55,8 @@ FROM (
                              status
            FROM {{source:oil_dds__sat_well}})) q;
 
--- Проверка: sat_well_initial_retained; phase=refresh
+
 -- Исходные версии и их аудит остаются неизменными.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 SELECT count(*) AS n
 FROM
     (SELECT well_hk,
@@ -95,9 +86,8 @@ FROM
                        status
      FROM {{target:oil_dds__sat_well}}) q;
 
--- Проверка: sat_well_business; phase=both
+
 -- Полное соответствие well-истории, включая удаления, изменения отношений и точный hashdiff.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 WITH expected AS
     (SELECT lower(to_hex(md5(to_utf8('well:' || entity_id)))) AS well_hk,
             lower(to_hex(md5(to_utf8('well_field:' || entity_id || ':' || json_extract_scalar(payload, '$.field_id'))))) AS link_hk,
@@ -135,9 +125,8 @@ FROM (
            EXCEPT ALL SELECT *
            FROM expected)) q;
 
--- Проверка: sat_well_keys_and_references; phase=both
+
 -- Уникальность событий и версий; ссылки hub/link/event; аудит спутника соответствует ledger.
--- Единственный результат n обязан быть 0; иначе публикация блокируется.
 SELECT count(*) AS n
 FROM
     (SELECT event_id AS k

@@ -1,9 +1,5 @@
-# Контекст миграции: AS IS / TO BE.
-# Назначение: Клиент удалённого Spark для Airflow-задач. Открывает собственный notebook/kernel через выделенный Jupyter MCP, подключается штатным dp103_spark.connect_dlh(), выполняет переданный видимый SQL и закрывает свою сессию. Секрет читается из moun.
-# AS IS: Source-расчёты выполняются функциями GP.
-# TO BE: Удалённый Spark Connect исполняет SQL в порядке зависимостей.
-# Отличие: Compute отделён от Iceberg/S3; локальный Spark не подменяет кластер и не получает source GRANT автоматически.
-# Конец контекста миграции.
+# Клиент удалённого Spark для Airflow-задач. Открывает собственный notebook/kernel через выделенный Jupyter MCP, подключается штатным dp103_spark.connect_dlh(), выполняет переданный видимый SQL и закрывает свою сессию. Секрет читается из moun.
+# Compute отделён от Iceberg/S3; локальный Spark не подменяет кластер и не получает source GRANT автоматически.
 """Airflow-side Spark Connect adapter using an isolated Jupyter kernel per run."""
 import json
 import os

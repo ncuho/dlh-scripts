@@ -1,10 +1,4 @@
--- Контекст миграции: AS IS / TO BE.
--- Назначение: Хранит версии атрибутов well, происхождение, порядок версий и операции изменения.
--- AS IS: oil_dds.sat_well в GP; выбранная исходная бизнес-сущность.
--- TO BE: Cedrus создаёт пустую физическую Iceberg-таблицу oil_dds__sat_well в namespace выпуска.
--- Отличие: View материализуется, если исходник — view; PK/FK/distribution не объявляются гарантиями Iceberg.
--- Конец контекста миграции.
--- Cedrus/Trino. Малый immutable release: Parquet v2, без искусственных PK/FK.
+-- Хранит версии атрибутов well, происхождение, порядок версий и операции изменения.
 CREATE TABLE {{target:oil_dds__sat_well}} (
     "well_hk" varchar,
     "link_hk" varchar,

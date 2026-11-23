@@ -1,0 +1,2 @@
+-- обязательность и единственность границы для каждой представленной партиции.
+SELECT count(*) AS n FROM (SELECT topic,kafka_partition FROM {{target:oil_stg__kafka_checkpoint}} GROUP BY topic,kafka_partition HAVING count(*)<>1 OR topic IS NULL OR kafka_partition IS NULL UNION ALL SELECT topic,kafka_partition FROM {{target:oil_stg__kafka_checkpoint}} WHERE next_offset IS NULL OR updated_at IS NULL) q;

@@ -1,0 +1,2 @@
+-- Точная INITIAL-копия всех исходных полей hub_production_day.
+SELECT count(*) AS n FROM ((SELECT production_hk,production_id,load_dts,record_source FROM {{source:oil_dds__hub_production_day}} EXCEPT ALL SELECT production_hk,production_id,load_dts,record_source FROM {{target:oil_dds__hub_production_day}}) UNION ALL (SELECT production_hk,production_id,load_dts,record_source FROM {{target:oil_dds__hub_production_day}} EXCEPT ALL SELECT production_hk,production_id,load_dts,record_source FROM {{source:oil_dds__hub_production_day}})) q;

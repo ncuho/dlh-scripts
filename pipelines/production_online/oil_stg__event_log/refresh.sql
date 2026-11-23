@@ -1,4 +1,4 @@
--- Собираем INITIAL и raw-окно, выбирая одну доставку по topic/partition/offset; исходный baseline остаётся неизменным.
+-- Повторно читаем raw с перекрытием до C0, объединяем с INITIAL и оставляем одну доставку по topic/partition/offset; baseline не меняется.
 WITH r AS
     (SELECT topic,
             kafka_partition,

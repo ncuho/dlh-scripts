@@ -1,0 +1,2 @@
+-- Replay не меняет ни одного поля первоначально принятого события.
+SELECT count(*) AS n FROM (SELECT event_id,event_type,entity_id,entity_version,op,event_time,load_dts,record_source,batch_id,payload,event_document FROM {{initial:oil_dds__event}} EXCEPT ALL SELECT event_id,event_type,entity_id,entity_version,op,event_time,load_dts,record_source,batch_id,payload,event_document FROM {{target:oil_dds__event}}) q;

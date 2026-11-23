@@ -1,0 +1,2 @@
+-- полное равенство serving-результата исходному представлению.
+WITH s AS (SELECT production_date,field_hk,field_name,region,oil_tonnes,producing_well_days,oil_per_well_day FROM {{source:oil_mart__v_field_production}}), t AS (SELECT production_date,field_hk,field_name,region,oil_tonnes,producing_well_days,oil_per_well_day FROM {{target:oil_mart__v_field_production}}), d AS ((SELECT * FROM s EXCEPT ALL SELECT * FROM t) UNION ALL (SELECT * FROM t EXCEPT ALL SELECT * FROM s)) SELECT count(*) AS n FROM d;

@@ -1,0 +1,2 @@
+-- полное равенство факта, выбранных версий измерений, статуса и добычи.
+WITH s AS (SELECT production_hk,well_hk,field_hk,production_date,well_version,field_version,status,oil_tonnes FROM {{source:oil_mart__fact_well_day}}), t AS (SELECT production_hk,well_hk,field_hk,production_date,well_version,field_version,status,oil_tonnes FROM {{target:oil_mart__fact_well_day}}), d AS ((SELECT * FROM s EXCEPT ALL SELECT * FROM t) UNION ALL (SELECT * FROM t EXCEPT ALL SELECT * FROM s)) SELECT count(*) AS n FROM d;

@@ -9,3 +9,5 @@ Serving-представление первой цепочки поверх agg_
 Зависимости INITIAL: `oil_mart__agg_field_day`. REFRESH: `oil_mart__agg_field_day`.
 
 Исторические ключи, точность Decimal, valid-time, удаления и правила выбора версий сохраняются в SQL. Новые технические load_dts/batch_id/received_at могут отличаться между движками; границы их сравнения заданы checks. Не заменяйте полную сверку одним COUNT или суммой.
+
+Текущая раскладка: INITIAL — `dlh.gold.v_field_production`, REFRESH — `dlh.gold.v_field_production_next`. Загрузка и проверки выполняются задачей `oil_mart__v_field_production` в `oil_layered_migration`; зависимости и фазы заданы `oil_layered_plan.py`.

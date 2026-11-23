@@ -1,0 +1,2 @@
+-- Полное равенство исходному hub вместе с аудитом.
+SELECT count(*) AS n FROM ((SELECT field_hk,field_id,load_dts,record_source FROM {{source:oil_dds__hub_field}} EXCEPT ALL SELECT field_hk,field_id,load_dts,record_source FROM {{target:oil_dds__hub_field}}) UNION ALL (SELECT field_hk,field_id,load_dts,record_source FROM {{target:oil_dds__hub_field}} EXCEPT ALL SELECT field_hk,field_id,load_dts,record_source FROM {{source:oil_dds__hub_field}})) q;

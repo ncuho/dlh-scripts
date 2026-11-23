@@ -1,0 +1,2 @@
+-- каждой последней U-версии соответствует ровно одна строка факта.
+WITH p AS (SELECT production_hk,op,row_number() OVER (PARTITION BY production_hk ORDER BY entity_version DESC,event_id DESC) AS rn FROM {{target:oil_dds__sat_daily_production}}) SELECT count(*) AS n FROM p WHERE rn=1 AND op='U' AND (SELECT count(*) FROM {{target:oil_mart__fact_well_day}} f WHERE f.production_hk=p.production_hk)<>1;

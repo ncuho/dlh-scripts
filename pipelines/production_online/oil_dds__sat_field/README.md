@@ -9,3 +9,5 @@
 Зависимости INITIAL: исходный capture. REFRESH: `oil_dds__event`.
 
 Исторические ключи, точность Decimal, valid-time, удаления и правила выбора версий сохраняются в SQL. Новые технические load_dts/batch_id/received_at могут отличаться между движками; границы их сравнения заданы checks. Не заменяйте полную сверку одним COUNT или суммой.
+
+Текущая раскладка: INITIAL — `dlh.silver.sat_field`, REFRESH — `dlh.silver.sat_field_next`. Загрузка и проверки выполняются задачей `oil_dds__sat_field` в `oil_layered_migration`; зависимости и фазы заданы `oil_layered_plan.py`.

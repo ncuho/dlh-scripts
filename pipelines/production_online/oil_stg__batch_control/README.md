@@ -9,3 +9,5 @@
 Зависимости INITIAL: исходный capture. REFRESH: закреплённый INITIAL / raw.
 
 Исторические ключи, точность Decimal, valid-time, удаления и правила выбора версий сохраняются в SQL. Новые технические load_dts/batch_id/received_at могут отличаться между движками; границы их сравнения заданы checks. Не заменяйте полную сверку одним COUNT или суммой.
+
+Текущая раскладка: INITIAL — `dlh.bronze.batch_control`, REFRESH — `dlh.bronze.batch_control_next`. Загрузка и проверки выполняются задачей `oil_stg__batch_control` в `oil_layered_migration`; зависимости и фазы заданы `oil_layered_plan.py`.

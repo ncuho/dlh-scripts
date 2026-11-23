@@ -50,9 +50,9 @@ generator → Kafka oil.events.v1 → GP sink
 ## Целевая архитектура со Spark
 
 ```text
-согласованная история GP → Cedrus → Iceberg INITIAL baseline
+исходные таблицы GP под SHARE-lock → Cedrus → Iceberg INITIAL
 Kafka → отдельный Iceberg sink → Iceberg raw JSON + offsets
-baseline + накопительная дельта → Spark → новый Iceberg release
+pinned INITIAL + накопительная дельта → Spark → новый Iceberg release
 release → Cedrus → отдельный Superset dataset / dashboard
 Airflow: порядок и logs; LakeKeeper + CIAM: доступ; Catalog: описания и lineage
 ```
@@ -63,15 +63,17 @@ Cedrus извлекает историю и выполняет межконту�
 
 ## Граница, изменения и публикация
 
-1. Создать независимый Iceberg sink с собственными consumer group/control topic, выдать ему MODIFY raw и включить до INITIAL. Producer и GP sink продолжают работу.
-2. В короткой GP-транзакции выполнить `bridge_capture.prepare_source('oil')` и `capture`: согласованно применить READY-партии, обновить обе исходные витрины и материализовать выбранные relations. Сохранить topic/cluster identity, applied next-offset vector C0, OID и code revision; выполнить COMMIT.
-3. Читать committed capture через Cedrus и скопировать историю в INITIAL baseline. Сохранить snapshots/UUID. GP writers могут ожидать capture-транзакцию, но не длительное копирование в Lakehouse.
-4. Выполнить видимые Spark-преобразования в порядке зависимостей; generator может доставлять новые события во время INITIAL.
-5. Проверить все строки/столбцы, grain, ссылки, SCD2, NULL и бизнес-показатели на C0. Отклонять выпуск при нарушениях.
-6. Выдать serving SELECT через LakeKeeper и опубликовать отдельный BI-отчёт после успешной проверки.
-7. Тем же коротким capture-протоколом зафиксировать C1; подтвердить полное покрытие raw [C0,C1) и закрепить его Iceberg snapshot.
-8. Для REFRESH использовать pinned INITIAL baseline и **всё** окно [C0,C1), дополнительно повторно читая до 10 offsets перед C0 в каждой партиции. Дедупликация доставки/event_id и расчёт бизнес-версий не допускают простого добавления повторов. Отдельный `_next` сверять с immutable C1, а не с живыми GP-таблицами; произвольные изменения GP вне Kafka требуют CDC.
-9. Проверить новый выпуск, права и BI до смены binding; GP ingestion и исходный отчёт остаются работающими.
+1. Отдельный Iceberg sink пишет `bronze.__raw_events`; producer продолжает отправлять версии до начала переноса.
+2. На окно C0 оператор приостанавливает GP sink и расписание source DAG, ждёт текущие runs и завершает READY-партии одним ручным source run. Изменения этого run фиксируются до открытия окна чтения.
+3. В административном psql открывается обычная транзакция с SHARE-блокировками исходных таблиц. Cedrus читает исходные `oil_stg/oil_dds/oil_mart` напрямую; служебные копии и реестр срезов не используются. Применённые Kafka offsets и token транзакции фиксируются в target receipt.
+4. `oil_layered_migration` выполняет 14 Cedrus и 6 Spark операций INITIAL, 60 проверок, контроль snapshot и действительности исходных locks. При потере исходной транзакции READY запрещён.
+5. Оператор повторяет сверки, выполняет COMMIT исходной транзакции, Resume GP connector и включает source DAG. Чтение отчёта GP доступно всё окно, но обновления обеих исходных веток в это время приостановлены.
+6. После READY настраиваются LakeKeeper/CIAM доступы, отдельная BI-панель и фактический Catalog lineage исходные таблицы → обработка → цель → отчёт.
+7. Для C1 повторяется окно pause/drain/SHARE-lock. REFRESH использует закреплённый INITIAL плюс полное raw-окно C0–C1 с дополнительным перекрытием до десяти offsets перед C0 по партициям. Stage дедуплицирует координаты, DDS — event_id, бизнес-версии определяются entity_version.
+8. Пять Cedrus и пятнадцать Spark операций строят `_next` в Bronze/Silver/Gold. После 53 сверок оператор освобождает locks и возобновляет источник, затем отдельно переключает целевой отчёт. Исходный GP dashboard сохраняется.
+9. Source-зависимые SQL-проверки воспроизводятся только пока удерживается соответствующее окно; после COMMIT сохраняются фактические результаты и target snapshots. Для новой живой сверки нужна новая граница.
+
+Это плановое окно приостановки записи GP, а не полностью online-перенос без задержки. Действующий Cedrus GP connector поддерживает READ COMMITTED; независимые чтения получают стабильный источник благодаря стандартным блокировкам. Общей транзакции GP и Iceberg нет. Target-компенсация очищает только подтверждённые записи кандидата; неизвестный исход требует сверки. Произвольные изменения GP вне Kafka требуют CDC или отдельного согласованного механизма.
 
 Kafka здесь доставляет события приложения; это не WAL CDC Greenplum. PXF/external tables не участвуют в исполняемой цепочке и не добавляются искусственно. Для такой дополнительной зависимости сначала нужны реальный внешний источник, контракт доступа и отдельная стратегия переноса.
 
@@ -159,7 +161,7 @@ Kafka здесь доставляет события приложения; эт�
 | [grants/lakekeeper/lakekeeper_roles](grants/lakekeeper/lakekeeper_roles/) | Сопоставляет CIAM-backed reader/engineer роли с разрешениями LakeKeeper через штатный Management API. |
 | [migration/fence/fence_controller](migration/fence/fence_controller/) | Адаптер ограниченного SSH-вызова acquire/status/release удалённого контроллера fence. |
 | [migration/fence/fence_probe_socket](migration/fence/fence_probe_socket/) | Проверяет действительность fence через локальный канал управляющей задачи; используется runner перед операциями. |
-| [migration/fence/source_fence](migration/fence/source_fence/) | Исторический offline-режим: lease Kafka, producer fence, pause GP sink и advisory lock. В текущем online-маршруте не используется; его заменяет bridge_capture. |
+| [migration/fence/source_fence](migration/fence/source_fence/) | Прежний вариант с producer fence. В текущем маршруте producer не блокируется: оператор удерживает стандартные SHARE-lock GP, приостановив только GP sink и исходный DAG. |
 | [pipelines/bounded_delta](pipelines/bounded_delta/) | Проверяет структуру manifest, идентификаторы таблиц, snapshots и offset-диапазоны; атомарно сохраняет evidence. |
 | [pipelines/cedrus_release_runner](pipelines/cedrus_release_runner/) | Создаёт 21 release-таблицу в порядке зависимостей через Cedrus. Проверяет snapshots, непрерывность offsets и результаты; сохраняет evidence, поддерживает ограниченное восстановление. |
 | [pipelines/dq_sql](pipelines/dq_sql/) | Генерирует read-only проверки конфликтов, ссылочной полноты, SCD, статусов, интервалов, истории событий и двусторонние EXCEPT ALL с GP. |
@@ -210,7 +212,7 @@ Kafka здесь доставляет события приложения; эт�
 
 ## Online-перенос производственной цепочки
 
-Историческая загрузка теперь читает committed GP capture C0, а не удерживает producer fence. Во время долгого Cedrus/Spark переноса generator и оба Kafka consumers могут продолжать работу. Для REFRESH фиксируется C1 и проверяется полный диапазон C0–C1. Короткая исходная capture-транзакция может задержать GP writers; это не обещание нулевой задержки.
+Историческая загрузка читает исходные таблицы GP напрямую под SHARE-lock. Генератор и Iceberg consumer работают; GP consumer и исходные расчёты приостановлены на окно загрузки и сверок. После COMMIT и Resume backlog обрабатывается штатно. REFRESH использует полный диапазон C0–C1 с перекрытием; отдельные source copies не создаются.
 
 Полный исходный/целевой SQL прокомментирован. В целевом репозитории `pipelines/production_online` содержит 20 отдельных папок: DDL, INITIAL, REFRESH, проверки и назначение каждого объекта. Это принятый бизнес-контракт первой цепочки. Остальные SQL относятся к альтернативным проекциям и следующей волне; не запускайте их поверх этого release. В Git не записываются runtime receipts, snapshots и секреты.
 

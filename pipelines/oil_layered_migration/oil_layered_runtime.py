@@ -12,8 +12,7 @@ from pathlib import Path
 from oil_layered_plan import OPERATIONS
 
 LAYERS = {'oil_stg': 'bronze', 'oil_dds': 'silver', 'oil_mart': 'gold'}
-CAPTURES = {'initial': 'pbc_00000000000000000001_00000001',
-            'refresh': 'pbc_00000000000000000001_00000002'}
+BOUNDARIES = {'initial': 'C0', 'refresh': 'C1'}
 RAW = 'dlh.bronze.__raw_events'
 
 
@@ -30,7 +29,7 @@ def overlap_window(p0, p1, overlap_offsets=10):
 def target(symbol, mode='initial'):
     """Resolve a fixed source symbol to its explicit physical Lakehouse table."""
     schema, name = symbol.split('__', 1)
-    if schema not in LAYERS or mode not in CAPTURES or not re.fullmatch(r'[a-z][a-z0-9_]*', name):
+    if schema not in LAYERS or mode not in BOUNDARIES or not re.fullmatch(r'[a-z][a-z0-9_]*', name):
         raise ValueError('Unknown object or release')
     return 'dlh.' + LAYERS[schema] + '.' + name + ('_next' if mode == 'refresh' else '')
 
@@ -50,9 +49,9 @@ def atomic_write(path, state):
 
 
 class Runner:
-    def __init__(self, client, mode, run_id, state_dir=None, sql_dir=None, spark_factory=None, overlap_offsets=10):
+    def __init__(self, client, mode, run_id, state_dir=None, sql_dir=None, spark_factory=None, overlap_offsets=10, source_guard=None):
         """Bind a single DAG run to reviewed SQL, private receipts and fixed target names."""
-        if mode not in CAPTURES:
+        if mode not in BOUNDARIES:
             raise ValueError('mode must be initial or refresh')
         self.client, self.mode, self.run_id = client, mode, str(run_id)
         self.root = Path(state_dir or os.environ.get('OIL_LAYERED_STATE_DIR', '/opt/airflow/logs/oil_layered_migration'))
@@ -60,11 +59,15 @@ class Runner:
         self.sql_dir = Path(sql_dir or Path(__file__).parent / 'sql')
         self.spark_factory = spark_factory
         self.overlap_offsets = overlap_offsets
+        if source_guard is None:
+            raise ValueError('A verified native source lock is required')
+        self.source_guard = source_guard
 
     def contract_hash(self):
         """Pin the plan, runtime and exact native SQL before any target write."""
         sources = {p.relative_to(self.sql_dir).as_posix(): p.read_text() for p in sorted(self.sql_dir.rglob('*.sql'))}
-        return fingerprint({'operations': OPERATIONS, 'sql': sources, 'runtime': Path(__file__).read_text()})
+        guard_path = Path(__file__).with_name('oil_source_lock.py')
+        return fingerprint({'operations': OPERATIONS, 'sql': sources, 'runtime': Path(__file__).read_text(), 'source_guard': guard_path.read_text()})
 
     def load(self):
         """Reject another run's receipt before trusting any completed operation."""
@@ -92,19 +95,13 @@ class Runner:
         rows = self.client.sql('SHOW CREATE TABLE ' + table)
         return fingerprint(rows)
 
-    def manifest(self, capture_id):
-        """Read a previously committed source capture; never capture or mutate GP here."""
-        if capture_id not in CAPTURES.values():
-            raise ValueError('Unknown capture')
-        rows = self.client.sql("SELECT manifest FROM greenplum_gp.bridge_capture.registry WHERE capture_id='" + capture_id + "'")
-        if len(rows) != 1:
-            raise ValueError('Create and COMMIT the source capture first')
-        value = rows[0]['manifest']
-        value = json.loads(value) if isinstance(value, str) else value
+    def manifest(self):
+        """Describe live committed source tables protected by the operator's native locks."""
+        value = self.source_guard.inspect(self.mode, OPERATIONS, self.client)
         if value.get('source_checks') != 'PASS' or value.get('topic') != 'oil.events.v1':
-            raise ValueError('Source capture did not pass its contract')
+            raise ValueError('Locked source did not pass its contract')
         if set(value['tables']) != {o['symbol'] for o in OPERATIONS}:
-            raise ValueError('Capture must contain exactly the approved 20 objects')
+            raise ValueError('Boundary must contain exactly the approved 20 objects')
         return value
 
     def prepare(self):
@@ -115,7 +112,7 @@ class Runner:
         if pointer.exists():
             raise FileExistsError('This release is already accepted; do not overwrite it')
         state = {'run_id': self.run_id, 'mode': self.mode, 'status': 'PREPARED',
-                 'manifest': self.manifest(CAPTURES[self.mode]), 'steps': {}, 'targets': {}, 'checks': [], 'contract_hash': self.contract_hash()}
+                 'manifest': self.manifest(), 'steps': {}, 'targets': {}, 'checks': [], 'contract_hash': self.contract_hash()}
         for op in OPERATIONS:
             table = target(op['symbol'], self.mode)
             if self.count(table) != 0:
@@ -151,12 +148,13 @@ class Runner:
                 if time.monotonic() >= deadline:
                     raise ValueError('Raw window is incomplete; no target data was written')
                 time.sleep(2)
+        self.source_guard.assert_held()
         self.save(state)
-        print(json.dumps({'status': 'PREPARED', 'mode': self.mode, 'capture_id': state['manifest']['capture_id'], 'receipt': str(self.path), 'window': state.get('window'), 'raw_snapshot': state.get('raw_snapshot')}))
+        print(json.dumps({'status': 'PREPARED', 'mode': self.mode, 'boundary_id': state['manifest']['boundary_id'], 'source_lock': state['manifest']['source_lock'], 'receipt': str(self.path), 'window': state.get('window'), 'raw_snapshot': state.get('raw_snapshot')}))
         return {'receipt': str(self.path), 'targets': 20}
 
     def render(self, query, dialect, state):
-        """Resolve only approved objects, pinned INITIAL/raw snapshots and capture tables."""
+        """Resolve original GP objects under native locks and pinned INITIAL/raw snapshots."""
         def replace(match):
             """Substitute one fixed source, target or historical reference."""
             side, symbol = match.groups()
@@ -169,9 +167,9 @@ class Runner:
                 return '(SELECT * FROM ' + target(symbol) + ' WHERE false)' if snap is None else target(symbol) + (' VERSION AS OF ' if dialect == 'spark' else ' FOR VERSION AS OF ') + str(snap)
             source = state['manifest']['tables'][symbol]
             name = source['table']
-            if source['schema'] != 'bridge_capture' or not re.fullmatch(r'pbc_[a-f0-9]{20}_[a-f0-9]{8}_[a-f0-9]{12}', name):
-                raise ValueError('Invalid source copy identity')
-            return 'greenplum_gp.bridge_capture.' + name
+            if (source['schema'], name) != tuple(symbol.split('__', 1)):
+                raise ValueError('Source relation differs from the reviewed object')
+            return 'greenplum_gp.' + source['schema'] + '.' + name
         value = re.sub(r'\{\{(source|target|initial):([^}]+)\}\}', replace, query)
         if '{{delta}}' in value:
             windows = ['(kafka_partition={partition} AND kafka_offset>={read_start} AND kafka_offset<{end})'.format(**p) for p in state['window']]
@@ -187,6 +185,7 @@ class Runner:
     def materialize(self, symbol):
         """Write one table, validate its keys/data, then permit dependent tasks to proceed."""
         state = self.load()
+        self.source_guard.assert_held()
         op = next(o for o in OPERATIONS if o['symbol'] == symbol)
         if state['status'] not in ('PREPARED', 'BUILDING') or symbol in state['steps']:
             raise ValueError('Run is not writable or the task was already attempted')
@@ -232,6 +231,7 @@ class Runner:
                     spark.close()
                 except Exception:
                     pass
+        self.source_guard.assert_held()
         for check in op['checks']:
             if check['phase'] not in ('both', self.mode):
                 continue
@@ -243,6 +243,7 @@ class Runner:
             self.save(state)
             if result[0]['n'] != 0:
                 raise ValueError('Quality gate failed: ' + symbol + '.' + check['name'])
+        self.source_guard.assert_held()
         state['steps'][symbol]['state'] = 'VALIDATED'
         self.save(state)
         print(json.dumps({'table': table, 'status': 'VALIDATED', 'snapshot': state['steps'][symbol]['snapshot']}))
@@ -251,6 +252,7 @@ class Runner:
     def validate_all(self):
         """Accept all twenty tables only when all phase checks and snapshot identities match."""
         state = self.load()
+        self.source_guard.assert_held()
         if set(state['steps']) != {o['symbol'] for o in OPERATIONS}:
             raise ValueError('Not all twenty tables were materialized')
         for symbol, step in state['steps'].items():

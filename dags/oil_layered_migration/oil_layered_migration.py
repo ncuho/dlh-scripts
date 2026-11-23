@@ -14,6 +14,7 @@ from oil_layered_plan import OPERATIONS
 from oil_layered_runtime import Runner
 from oil_layered_cedrus import MCP
 from oil_layered_spark import SparkClient
+from oil_source_lock import SourceLock
 
 
 # Один task выполняет только выбранную операцию; журнал привязан к фактическому Airflow run_id.
@@ -22,7 +23,8 @@ def execute(action, symbol=None, **context):
     mode = (context['dag_run'].conf or {}).get('mode')
     client = MCP(os.environ['OIL_TRINO_MCP_URL'], os.environ.get('OIL_MCP_CA_FILE'), os.environ.get('OIL_MCP_BEARER_FILE'))
     runner = Runner(client, mode, context['run_id'], spark_factory=lambda: SparkClient('bridge_' + uuid.uuid4().hex),
-                    overlap_offsets=(context['dag_run'].conf or {}).get('overlap_offsets', 10))
+                    overlap_offsets=(context['dag_run'].conf or {}).get('overlap_offsets', 10),
+                    source_guard=SourceLock((context['dag_run'].conf or {}).get('source_lock')))
     if action == 'table':
         return runner.materialize(symbol)
     return getattr(runner, action)()

@@ -1,5 +1,9 @@
--- Назначение: Объединяет исходный baseline и raw-события из всех полуоткрытых диапазонов offsets [start,end), зафиксированных в manifest.
--- Исполняйте в указанном SQL-движке; одноимённые функции и типы GP и Spark могут иметь разную семантику.
+-- Контекст миграции: AS IS / TO BE.
+-- Назначение: Объединяет закреплённую историю и ограниченное окно raw.
+-- AS IS: История событий и GP-расчёты обеих исходных веток.
+-- TO BE: Альтернативная release-проекция с canonical_input/event и размерными моделями.
+-- Отличие: Сохранённый маршрут; production_online первой волны имеет собственный 20-объектный контракт.
+-- Конец контекста миграции.
 -- Review template; runner renders validated identifiers, snapshots and every partition window.
 CREATE TABLE dlh.__RELEASE_SCHEMA__.canonical_input
 WITH (format = 'PARQUET') AS

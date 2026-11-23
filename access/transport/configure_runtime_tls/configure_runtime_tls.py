@@ -1,3 +1,9 @@
+# Контекст миграции: AS IS / TO BE.
+# Назначение: Настраивает HTTPS+Bearer gateway для вызовов runtime к SQL MCP, каталогу и проверке serving-доступов.
+# AS IS: Source-доступ осуществляется через GP, TLS и зарегистрированные identities.
+# TO BE: Настраивает проверяемый транспорт/доверие или verifier target-сервисов.
+# Отличие: Это инфраструктурный доступ, а не автоматический перенос бизнес-ролей; TLS не отключается ради миграции.
+# Конец контекста миграции.
 """Configure a native cert-manager TLS/auth gateway for the migration runtime.
 
 The opaque transport token is generated once and stays only in Kubernetes Secrets.

@@ -1,3 +1,9 @@
+# Контекст миграции: AS IS / TO BE.
+# Назначение: Скрипт принимает ready evidence через stdin внутри штатного token proxy и назначает существующей CIAM-backed роли oil_dlh_reader точечный SELECT. Для production — agg_field_day, для performance — agg_field_day и field_performance. UUID и sn.
+# AS IS: GP использует PostgreSQL роли, GRANT и ограничения source-доступа.
+# TO BE: LakeKeeper назначает действия CIAM identity/role на namespace или table UUID; Superset проверяется отдельно.
+# Отличие: Права не копируются SQL GRANT из GP; новый UUID выпуска требует нового назначения и проверки.
+# Конец контекста миграции.
 """Run inside LakeKeeper M2M proxy. Grant reader SELECT only on two release tables.
 
 Requires a validated ready evidence JSON on stdin, fixes role and warehouse IDs,

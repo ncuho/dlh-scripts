@@ -1,3 +1,9 @@
+# Контекст миграции: AS IS / TO BE.
+# Назначение: Read-only verifier подтверждает table UUID, snapshot и effective SELECT CIAM-backed reader. Для production проверяет agg_field_day, для performance также field_performance; запрещает расширенные права на родительских объектах. Развёрнут sid.
+# AS IS: GP использует PostgreSQL роли, GRANT и ограничения source-доступа.
+# TO BE: LakeKeeper назначает действия CIAM identity/role на namespace или table UUID; Superset проверяется отдельно.
+# Отличие: Права не копируются SQL GRANT из GP; новый UUID выпуска требует нового назначения и проверки.
+# Конец контекста миграции.
 """Read-only serving grant verifier. No credentials or arbitrary URLs in output."""
 import json
 import hmac

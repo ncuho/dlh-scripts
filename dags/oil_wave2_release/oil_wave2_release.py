@@ -1,3 +1,9 @@
+# Контекст миграции: AS IS / TO BE.
+# Назначение: Ручной DAG oil_wave2_release строит independent INITIAL/REFRESH для chain=production (14 таблиц) или chain=performance (21). Общий producer fence и GP advisory lock удерживаются одной задачей; manifest фиксирует Kafka identity/offsets и Ice.
+# AS IS: Source DAG обновляет GP-историю и обе витрины.
+# TO BE: Целевой Airflow DAG оркестрирует release и расчёты Cedrus/Spark.
+# Отличие: Имена и состав tasks задаёт этот вариант DAG; универсальный Bridge разворачивает отдельный reviewed project DAG.
+# Конец контекста миграции.
 """Manual oil release orchestration. Deployment/configuration required.
 
 The build holds Kafka controller lease and Greenplum advisory lock in this one

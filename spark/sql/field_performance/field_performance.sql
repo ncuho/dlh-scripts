@@ -1,5 +1,9 @@
--- Назначение: Spark SQL transformation over the immutable release input. Session timezone is UTC; INITIAL and REFRESH must use a verified cut and snapshots.
--- Исполняйте в указанном SQL-движке; одноимённые функции и типы GP и Spark могут иметь разную семантику.
+-- Контекст миграции: AS IS / TO BE.
+-- Назначение: Объединяет добычу и простои для отчёта эффективности.
+-- AS IS: PL/pgSQL GP строит Vault-проекции и Kimball-модель внутри БД.
+-- TO BE: Spark SELECT строит сущность из canonical history в согласованном release.
+-- Отличие: Этот набор использует альтернативную canonical-модель; текущий production_online нельзя подменять им без review.
+-- Конец контекста миграции.
 SELECT
   p.*,
   COALESCE(d.downtime_hours, CAST('0.000000' AS DECIMAL)) AS downtime_hours

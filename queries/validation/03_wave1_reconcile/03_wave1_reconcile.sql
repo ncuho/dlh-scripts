@@ -1,5 +1,9 @@
+-- Контекст миграции: AS IS / TO BE.
 -- Назначение: Read-only SQL-проверки качества, полноты и согласованности результатов двух контуров.
--- Исполняйте в указанном SQL-движке; одноимённые функции и типы GP и Spark могут иметь разную семантику.
+-- AS IS: Исходные показатели вычисляются в GP.
+-- TO BE: Read-only SQL показывает или сверяет принятые target-показатели через Cedrus.
+-- Отличие: Имена таблиц и границы должны относиться к одному release; это не команда повторной загрузки.
+-- Конец контекста миграции.
 -- DRAFT: 12 full multiset comparisons; replace identifiers only with verified FQNs.
 -- GP tables must be frozen at the approved cut; read Iceberg output at the exact manifest snapshot.
 -- This template uses table heads: verify each head equals its manifest snapshot before execution.

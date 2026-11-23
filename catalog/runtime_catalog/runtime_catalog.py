@@ -1,3 +1,9 @@
+# Контекст миграции: AS IS / TO BE.
+# Назначение: Ready evidence и manifest определяют chain и точный состав: 14 или 21 таблица, baseline и raw. Скрипт сверяет snapshots, регистрирует таблицы и column lineage фактически исполненного SQL, связывая обработку с pipeline webinar_airflow.oil_wa.
+# AS IS: Catalog описывает source tables, функции, Kafka и BI lineage.
+# TO BE: Регистрирует фактические target-таблицы, обработку и связи до BI.
+# Отличие: Метаданные не переносят данные; lineage должен соответствовать реальному SQL и фактическому выпуску.
+# Конец контекста миграции.
 """Register a validated, materialized oil release and update BI lineage after switch.
 
 No kubectl, credentials, consumer activation, dataset changes or destructive table

@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+# Контекст миграции: AS IS / TO BE.
+# Назначение: Назначает отдельной CIAM service identity право modify только на выделенную raw-таблицу Iceberg.
+# AS IS: GP использует PostgreSQL роли, GRANT и ограничения source-доступа.
+# TO BE: LakeKeeper назначает действия CIAM identity/role на namespace или table UUID; Superset проверяется отдельно.
+# Отличие: Права не копируются SQL GRANT из GP; новый UUID выпуска требует нового назначения и проверки.
+# Конец контекста миграции.
 """Run only inside platform m2m pod. Add exact grants; bearer remains in memory."""
 import json, time, urllib.request, urllib.error, urllib.parse
 

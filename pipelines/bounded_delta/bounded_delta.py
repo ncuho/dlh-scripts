@@ -1,3 +1,9 @@
+# Контекст миграции: AS IS / TO BE.
+# Назначение: Проверяет структуру manifest, идентификаторы таблиц, snapshots и offset-диапазоны; атомарно сохраняет evidence.
+# AS IS: Source checkpoint обозначает принятый/применённый диапазон событий.
+# TO BE: Валидирует manifest, snapshots и полное ограниченное окно raw.
+# Отличие: Один последний интервал не заменяет накопительную дельту от INITIAL C0.
+# Конец контекста миграции.
 """Validate the bounded release manifest and persist evidence atomically."""
 
 import json

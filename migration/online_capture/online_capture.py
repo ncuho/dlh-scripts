@@ -1,3 +1,9 @@
+# Контекст миграции: AS IS / TO BE.
+# Назначение: Фиксирует и проверяет согласованные GP captures C0/C1 и их безопасную очистку.
+# AS IS: Исходная цепочка работает в GP; инженер вручную исследует, переносит и сверяет сущности.
+# TO BE: Bridge оркестрирует те же сервисы по принятому плану, коду и проверкам.
+# Отличие: Агент предлагает план/SQL; разрешённый исполнитель применяет принятые операции. Source не удаляется автоматически.
+# Конец контекста миграции.
 """Materialize one consistent GP image without stopping a Kafka producer.
 
 The guarded SQL service queues GP writes only for the short capture transaction.

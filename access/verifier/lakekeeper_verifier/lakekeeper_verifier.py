@@ -1,3 +1,9 @@
+# Контекст миграции: AS IS / TO BE.
+# Назначение: Read-only сервис проверки актуальных snapshots, table-level grants и отсутствия избыточного родительского доступа перед публикацией.
+# AS IS: Source-доступ осуществляется через GP, TLS и зарегистрированные identities.
+# TO BE: Настраивает проверяемый транспорт/доверие или verifier target-сервисов.
+# Отличие: Это инфраструктурный доступ, а не автоматический перенос бизнес-ролей; TLS не отключается ради миграции.
+# Конец контекста миграции.
 """Read-only serving grant verifier. No credentials or arbitrary URLs in output."""
 
 import json

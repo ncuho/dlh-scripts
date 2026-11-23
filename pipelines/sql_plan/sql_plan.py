@@ -1,3 +1,9 @@
+# Контекст миграции: AS IS / TO BE.
+# Назначение: plan(schema, chain) возвращает упорядоченный SQL CTAS для Cedrus. production содержит 12 доменных таблиц; вместе с canonical_input/canonical_event получается 14. performance добавляет семь зависимостей простоев, всего 21. Входной baseline и.
+# AS IS: Source функции работают в транзакции GP.
+# TO BE: Исполнитель материализует согласованный target release и журналирует результаты.
+# Отличие: Сохранённый альтернативный runtime; текущий online-путь выполняется project_runner с capture C0/C1.
+# Конец контекста миграции.
 """Trino SQL for immutable oil release. Requires prevalidated canonical_event.
 
 Rendered queries were reconciled against GP on a fenced rehearsal boundary.

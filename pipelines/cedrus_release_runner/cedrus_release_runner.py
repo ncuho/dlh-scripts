@@ -1,3 +1,9 @@
+# Контекст миграции: AS IS / TO BE.
+# Назначение: Создаёт 21 release-таблицу в порядке зависимостей через Cedrus. Проверяет snapshots, непрерывность offsets и результаты; сохраняет evidence, поддерживает ограниченное восстановление.
+# AS IS: Source функции работают в транзакции GP.
+# TO BE: Исполнитель материализует согласованный target release и журналирует результаты.
+# Отличие: Сохранённый альтернативный runtime; текущий online-путь выполняется project_runner с capture C0/C1.
+# Конец контекста миграции.
 """Bounded Cedrus release runner. A source fence and durable evidence are mandatory.
 
 A successful `ready` is a reconciled immutable release, not BI publication.

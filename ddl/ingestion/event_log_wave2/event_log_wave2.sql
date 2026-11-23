@@ -1,5 +1,9 @@
--- Назначение: Отдельная raw Iceberg-таблица Kafka sink. Хранит Kafka-координаты и полный JSON, не изменяя ранее принятый baseline первой цепочки.
--- Исполняйте в указанном SQL-движке; одноимённые функции и типы GP и Spark могут иметь разную семантику.
+-- Контекст миграции: AS IS / TO BE.
+-- Назначение: Принимает исходный JSON и Kafka-координаты отдельным Iceberg sink.
+-- AS IS: GP sink записывает Stage и checkpoints в одной source-транзакции.
+-- TO BE: Отдельный Iceberg sink сохраняет raw JSON с координатами Kafka.
+-- Отличие: Raw commit не означает применение DDS/Marts; границы и дедупликация проверяются отдельно.
+-- Конец контекста миграции.
 CREATE TABLE dlh.oil_stg.event_log_wave2 (
     topic varchar,
     kafka_partition integer,

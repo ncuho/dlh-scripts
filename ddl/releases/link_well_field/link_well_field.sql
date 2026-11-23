@@ -1,5 +1,9 @@
--- Назначение: Хранит историческую связь скважины с месторождением по техническим ключам. Изменяемые атрибуты находятся в satellites.
--- Исполняйте в указанном SQL-движке; одноимённые функции и типы GP и Spark могут иметь разную семантику.
+-- Контекст миграции: AS IS / TO BE.
+-- Назначение: Хранит историю связи well_field через hash keys связанных hubs.
+-- AS IS: История событий и GP-расчёты обеих исходных веток.
+-- TO BE: Альтернативная release-проекция с canonical_input/event и размерными моделями.
+-- Отличие: Сохранённый маршрут; production_online первой волны имеет собственный 20-объектный контракт.
+-- Конец контекста миграции.
 -- Review template: replace oil_r_example with the chosen immutable release.
 -- Executed parameterized equivalent: pipelines/sql_plan/sql_plan.py.
 CREATE TABLE dlh.oil_r_example.link_well_field WITH (

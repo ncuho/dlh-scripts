@@ -1,3 +1,9 @@
+# Контекст миграции: AS IS / TO BE.
+# Назначение: Получает короткий JWT ограниченного publisher по HTTPS, держит его во временном файле и удаляет после операции.
+# AS IS: Исходный Superset читает GP dataset и dashboard.
+# TO BE: Публикуется отдельный target dataset/charts/dashboard через Cedrus.
+# Отличие: Source BI не перезаписывается; перед publication проверяются chart queries, grants и release.
+# Конец контекста миграции.
 """Short-lived publisher login over verified TLS; tokens live only in runtime tmpfs."""
 
 from contextlib import contextmanager

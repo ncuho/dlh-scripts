@@ -1,3 +1,9 @@
+# Контекст миграции: AS IS / TO BE.
+# Назначение: Native Airflow DAG for reviewing each SQL entity as its own task. Requires a separately captured immutable canonical_event and the source boundary held by the operator. Load the reviewed SQL and Spark transport into the configured S3 DAG di.
+# AS IS: Source DAG обновляет GP-историю и обе витрины.
+# TO BE: Целевой Airflow DAG оркестрирует release и расчёты Cedrus/Spark.
+# Отличие: Имена и состав tasks задаёт этот вариант DAG; универсальный Bridge разворачивает отдельный reviewed project DAG.
+# Конец контекста миграции.
 """Materialize reviewed business SQL after baseline and canonical_event preparation."""
 
 from datetime import datetime, timedelta

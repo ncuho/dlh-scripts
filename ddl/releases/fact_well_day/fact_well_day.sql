@@ -1,5 +1,9 @@
--- Назначение: Факт зерна «скважина × производственная дата». Содержит тонны, статус и версии измерений well/field, действовавшие на дату.
--- Исполняйте в указанном SQL-движке; одноимённые функции и типы GP и Spark могут иметь разную семантику.
+-- Контекст миграции: AS IS / TO BE.
+-- Назначение: Связывает суточную добычу с действовавшими версиями измерений.
+-- AS IS: История событий и GP-расчёты обеих исходных веток.
+-- TO BE: Альтернативная release-проекция с canonical_input/event и размерными моделями.
+-- Отличие: Сохранённый маршрут; production_online первой волны имеет собственный 20-объектный контракт.
+-- Конец контекста миграции.
 -- Review template: replace oil_r_example with the chosen immutable release.
 -- Executed parameterized equivalent: pipelines/sql_plan/sql_plan.py.
 CREATE TABLE dlh.oil_r_example.fact_well_day WITH (

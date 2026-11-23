@@ -1,3 +1,9 @@
+# Контекст миграции: AS IS / TO BE.
+# Назначение: Собирает categorized source в плоский каталог managed Airflow, сохраняя действующие имена импортов. Публикацию и перезапуск сервисов не выполняет.
+# AS IS: Исходные SQL/функции размещены в GP и Git.
+# TO BE: Упаковывает runtime для целевого Airflow/Spark исполнения.
+# Отличие: Доставка кода не запускает расчёт автоматически; версии должны совпасть с reviewed contract.
+# Конец контекста миграции.
 """Stage categorized sources into the flat managed Airflow module directory."""
 
 import argparse

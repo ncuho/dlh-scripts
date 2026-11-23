@@ -1,3 +1,9 @@
+# Контекст миграции: AS IS / TO BE.
+# Назначение: Сопоставляет CIAM-backed reader/engineer роли с разрешениями LakeKeeper через штатный Management API.
+# AS IS: GP использует PostgreSQL роли, GRANT и ограничения source-доступа.
+# TO BE: LakeKeeper назначает действия CIAM identity/role на namespace или table UUID; Superset проверяется отдельно.
+# Отличие: Права не копируются SQL GRANT из GP; новый UUID выпуска требует нового назначения и проверки.
+# Конец контекста миграции.
 """Run inside the existing management proxy pod. Add scoped CIAM-backed roles.
 
 Uses the same management assignment API as LakeKeeper UI, never raw OpenFGA.

@@ -1,3 +1,9 @@
+# Контекст миграции: AS IS / TO BE.
+# Назначение: Удерживает живую границу на время build: lease Kafka, запрет producer write, pause GP sink и GP advisory lock. При потере подтверждения прекращает работу.
+# AS IS: Старый offline-маршрут удерживает source boundary и producer fence.
+# TO BE: Сохранён для совместимости; текущая online-цепочка использует bridge_capture.
+# Отличие: Этот адаптер не требуется запускать для online INITIAL/REFRESH.
+# Конец контекста миграции.
 """One-task Kafka lease + live Greenplum advisory lock for a bounded release.
 
 The external command-only controller is responsible for fail-closed broker ACL,

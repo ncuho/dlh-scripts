@@ -1,3 +1,9 @@
+# Контекст миграции: AS IS / TO BE.
+# Назначение: gates(schema, chain) проверяет контракт событий, версии, SCD2 и покрытие фактов. comparisons(schema, chain) сравнивает полную историю и бизнес-таблицы через двусторонний EXCEPT ALL на одной удерживаемой границе. Каждый результат должен быть.
+# AS IS: GP-ограничения и проверки исходных функций защищают source.
+# TO BE: SQL-гейты выявляют дубли, сироты, версии и расхождения перед publication.
+# Отличие: Успешный INSERT или count без нарушений не заменяет полный набор проверок.
+# Конец контекста миграции.
 """Read-only DQ gates and two-way Greenplum comparisons for oil releases.
 
 A zero result for every query is necessary, not proof of a frozen source cut.

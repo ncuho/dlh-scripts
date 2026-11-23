@@ -1,3 +1,9 @@
+# Контекст миграции: AS IS / TO BE.
+# Назначение: Разворачивает verifier с TLS, авторизацией и ограничением сетевого доступа. Секреты хранятся в Kubernetes Secret.
+# AS IS: Source-доступ осуществляется через GP, TLS и зарегистрированные identities.
+# TO BE: Настраивает проверяемый транспорт/доверие или verifier target-сервисов.
+# Отличие: Это инфраструктурный доступ, а не автоматический перенос бизнес-ролей; TLS не отключается ради миграции.
+# Конец контекста миграции.
 """Configure a narrowly scoped, read-only serving verifier beside LK token proxy."""
 
 import json

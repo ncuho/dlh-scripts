@@ -1,3 +1,9 @@
+-- Контекст миграции: AS IS / TO BE.
+-- Назначение: Хранит принятые event_id, версии сущностей, операции U/D и исходный документ.
+-- AS IS: oil_dds.event в GP; выбранная исходная бизнес-сущность.
+-- TO BE: Cedrus создаёт пустую физическую Iceberg-таблицу oil_dds__event в namespace выпуска.
+-- Отличие: View материализуется, если исходник — view; PK/FK/distribution не объявляются гарантиями Iceberg.
+-- Конец контекста миграции.
 -- Cedrus/Trino. Малый immutable release: Parquet v2, без искусственных PK/FK.
 CREATE TABLE {{target:oil_dds__event}} (
     "event_id" varchar,

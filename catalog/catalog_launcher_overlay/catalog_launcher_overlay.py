@@ -1,3 +1,9 @@
+# Контекст миграции: AS IS / TO BE.
+# Назначение: Расширяет MCP каталога узкими операциями удаления BI-lineage и обновления описаний разрешённых BI-объектов.
+# AS IS: Catalog описывает source tables, функции, Kafka и BI lineage.
+# TO BE: Регистрирует фактические target-таблицы, обработку и связи до BI.
+# Отличие: Метаданные не переносят данные; lineage должен соответствовать реальному SQL и фактическому выпуску.
+# Конец контекста миграции.
 """OpenMetadata MCP launcher (streamable-http).
 
 Obtains a fresh OpenMetadata JWT at startup (via login when username/password are

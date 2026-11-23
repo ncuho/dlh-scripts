@@ -1,3 +1,9 @@
+# Контекст миграции: AS IS / TO BE.
+# Назначение: Переключает только разрешённый Superset dataset при совпадении прежней привязки. Проверяет новый запрос и выполняет rollback при ошибке.
+# AS IS: Исходный Superset читает GP dataset и dashboard.
+# TO BE: Публикуется отдельный target dataset/charts/dashboard через Cedrus.
+# Отличие: Source BI не перезаписывается; перед publication проверяются chart queries, grants и release.
+# Конец контекста миграции.
 """Guarded Superset dataset switch. Default dry-run; --apply requires ready evidence.
 
 Token file and TLS CA come from environment, never command arguments. Operator must

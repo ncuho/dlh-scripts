@@ -1,3 +1,9 @@
+# Контекст миграции: AS IS / TO BE.
+# Назначение: Роль OilMigrationPublisher позволяет штатной сервисной учётной записи создавать и изменять принадлежащие ей отчёты, графики и datasets на Cedrus database 2. Доступ к исходному GP database и административные права не выдаются. Запускать внут.
+# AS IS: GP использует PostgreSQL роли, GRANT и ограничения source-доступа.
+# TO BE: LakeKeeper назначает действия CIAM identity/role на namespace или table UUID; Superset проверяется отдельно.
+# Отличие: Права не копируются SQL GRANT из GP; новый UUID выпуска требует нового назначения и проверки.
+# Конец контекста миграции.
 """Run inside the Superset web container. Scope migration authoring to database 2."""
 import json
 from superset.app import create_app

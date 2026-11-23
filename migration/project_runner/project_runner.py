@@ -1,3 +1,9 @@
+# Контекст миграции: AS IS / TO BE.
+# Назначение: Исполняет reviewed INITIAL/REFRESH в Airflow и блокирует выпуск при ошибке DQ.
+# AS IS: Исходная цепочка работает в GP; инженер вручную исследует, переносит и сверяет сущности.
+# TO BE: Bridge оркестрирует те же сервисы по принятому плану, коду и проверкам.
+# Отличие: Агент предлагает план/SQL; разрешённый исполнитель применяет принятые операции. Source не удаляется автоматически.
+# Конец контекста миграции.
 """Installed Airflow execution library for compiled migration contracts.
 
 This file deliberately has no application database, agent, recipe or business IDs.

@@ -27,7 +27,7 @@
 ## Что происходит
 
 1. Читает фактические ресурсы, проверяет принадлежность и сохраняет определения в приватный локальный журнал. Находит **новые Superset IDs** по binding dataset к `dlh.bronze/silver/gold`, а не по ID предыдущего показа.
-2. Ставит `oil_layered_migration`, `oil_dlh_catchup`, `oil_dlh_release` на паузу. Старый `oil_source_snapshot`, если установлен, тоже оставляет на паузе.
+2. Ставит `oil_layered_migration`, `oil_dlh_release` в режиме `catchup`, `oil_dlh_release` на паузу. Старый `oil_source_snapshot`, если установлен, тоже оставляет на паузе.
 
    Если зарегистрирован агентский `oil_production_spark_candidate`, он тоже входит в проверку активных writers и остаётся на паузе. Его отсутствие не мешает сбросу; установленный код DAG сохраняется.
 3. Посылает SIGINT генератору `live_oil_updates.py`, дожидается завершения доставки текущего события и сохраняет `/tmp/oil-live-production.json`.

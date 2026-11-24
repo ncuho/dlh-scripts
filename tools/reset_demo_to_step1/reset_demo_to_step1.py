@@ -16,8 +16,8 @@ import uuid
 REPO = Path(__file__).resolve().parents[2]
 BRIDGE = Path(os.environ.get('PLATFORM_BRIDGE_ROOT', str(REPO.parents[1]/'platform-bridge'))).resolve()
 CONNECTOR = 'manual-oil-production-a'
-DAGS = ['oil_layered_migration', 'oil_dlh_catchup', 'oil_dlh_release']
-OPTIONAL_DAGS = ['oil_production_spark_candidate']
+DAGS = ['oil_layered_migration', 'oil_dlh_release']
+OPTIONAL_DAGS = ['oil_dlh_catchup', 'oil_production_spark_candidate']
 TABLES = {
     'bronze': ['__raw_events', 'batch_control', 'batch_coalesce_map', 'batch_coalesce_event_map', 'event_log', 'kafka_checkpoint', 'v_event_parsed'],
     'silver': ['event', 'hub_field', 'hub_production_day', 'hub_well', 'link_production_day_well', 'link_well_field', 'sat_daily_production', 'sat_field', 'sat_well'],

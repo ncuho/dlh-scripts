@@ -137,7 +137,9 @@ class Processor:
         event_types={row['event_type'] for row in type_rows}
         if event_types-{'field','well','production_day','downtime'}:raise ValueError('Unknown event type; review event contract before processing')
         advanced=sum(p['end']-p['start'] for p in window)
-        if not advanced:
+        # A manual migration acceptance still needs the GP checks when C1=C0.
+        # Only ordinary scheduled releases may finish before those checks.
+        if not advanced and not self.source:
             return {'status':'NO_CHANGES','mode':self.mode,'partitions':end,'tables_written':0}
         # The raw snapshot may lag GP. Refuse partial replay; wait for a fresh complete snapshot on a new run.
         for p in window:
@@ -252,7 +254,11 @@ class Processor:
         for symbol,step in self.state['steps'].items():
             if self.snapshot(target(symbol))!=step['snapshot']:raise ValueError('Foreign change after validation')
         if self.source:self.source.assert_held()
-        self.state['status']='READY';self.save();atomic_write(self.pointer,self.state)
+        self.state['status']='READY';self.save()
+        # Retain the migration C1 receipt when the same DAG starts its next
+        # scheduled release and replaces ready_dlh.json.
+        if self.mode=='catchup':atomic_write(self.root/'ready_catchup.json',self.state)
+        atomic_write(self.pointer,self.state)
         print(json.dumps({'phase':'READY','mode':self.mode,'run_id':self.run_id,'partitions':self.state['manifest']['partitions'],'checks':len(self.state['checks']),'tables':20}),flush=True)
         return {'status':'READY','run_id':self.run_id,'partitions':self.state['manifest']['partitions'],'checks':len(self.state['checks'])}
 

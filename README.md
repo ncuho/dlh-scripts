@@ -7,7 +7,7 @@ Kafka `oil.events.v1` читают два независимых sink: GP ingest
 | DAG | Назначение | Движок | Запуск |
 |---|---|---|---|
 | `oil_layered_migration` | Первичная копия 20 объектов на общем C0, 65 сверок | Cedrus; native Python удерживает GP snapshot | Один раз вручную |
-| `oil_dlh_catchup` | Догон C0–C1 с overlap и GP-сверкой, 58 проверок | Spark, DQ через Cedrus | Вручную после INITIAL |
+| `oil_dlh_release` в режиме `catchup` | Догон C0–C1 с overlap и GP-сверкой, 58 проверок | Spark, DQ через Cedrus | Вручную после INITIAL |
 | `oil_dlh_release` | Последующие события raw → Stage/Vault/Kimball, 53 проверки | Spark, DQ через Cedrus; без чтения GP | Каждую минуту |
 
 Bronze/Silver обновляются ключевым MERGE, Gold пересчитывается в существующих таблицах атомарным overwrite. Отчёт читает `gold.v_field_production`, публикуемую последней. Имена/UUID/grants и Superset dataset при обновлениях сохраняются. Iceberg не обеспечивает общую транзакцию двадцати таблиц: один writer и последовательные PK/FK/DQ-gates обязательны; подтверждённые изменения компенсируются rollback snapshots. Неизвестные исходы блокируют следующие записи до проверки.
@@ -19,7 +19,7 @@ Bronze/Silver обновляются ключевым MERGE, Gold пересчи
 
 Предметные слои: Bronze — Stage и landing Kafka, Silver — Data Vault, Gold — размерная модель и отчёт добычи. INITIAL сохраняет исходные имена таблиц; догон и регулярная обработка используют те же таблицы. Данные и код исходного GP не удаляются.
 
-DAG `oil_layered_migration` управляет всеми 20 объектами, проверяет родителей перед дочерними таблицами, выполняет 65 проверок INITIAL; отдельные oil_dlh_catchup/oil_dlh_release выполняют 58/53 проверки и компенсирует подтверждённые записи кандидата при сбое. Неизвестный исход и чужие изменения требуют сверки; публикация Superset остаётся отдельной приёмкой после READY. Код runtime и план — [pipelines/oil_layered_migration](pipelines/oil_layered_migration), DAG — [dags/oil_layered_migration](dags/oil_layered_migration).
+DAG `oil_layered_migration` управляет всеми 20 объектами, проверяет родителей перед дочерними таблицами, выполняет 65 проверок INITIAL; единый oil_dlh_release в режимах catchup/release выполняет 58/53 проверки и компенсирует подтверждённые записи кандидата при сбое. Неизвестный исход и чужие изменения требуют сверки; публикация Superset остаётся отдельной приёмкой после READY. Код runtime и план — [pipelines/oil_layered_migration](pipelines/oil_layered_migration), DAG — [dags/oil_layered_migration](dags/oil_layered_migration).
 
 Текущий маршрут: [oil_layered_migration](dags/oil_layered_migration), одна task с одним native GP-подключением; отдельный экспортный DAG выведен из эксплуатации.
 
@@ -86,7 +86,7 @@ Cedrus извлекает историю и выполняет межконту�
 3. Python читает строки через psycopg2; Cedrus пишет их прямо в предметные Iceberg-таблицы. Бизнес-расчёты в INITIAL не пересчитываются. Промежуточного JSON-экспорта в Iceberg нет.
 4. Одна task последовательно исполняет двадцать объектов в порядке зависимостей. Родитель должен пройти VALIDATED до ребёнка. INITIAL включает 65 проверок, catchup — 58, регулярный Spark release — 53: полные строковые SHA-256 signatures, количества/повторы, ключи, FK, SCD2 и покрытие дельты.
 5. Только READY допускает дальнейшую выдачу reader-доступа и отдельную публикацию Superset. Исходная GP-транзакция закрывается при выходе из task.
-6. oil_dlh_catchup фиксирует applied C1 тем же способом и применяет предыдущий принятый выпуск + raw с overlap к тем же таблицам. Далее oil_dlh_release работает без чтения GP. Новым target доставкам сначала создаются отрицательные batch_id по partition/offset и batch_control; исходный audit остаётся в INITIAL/raw.
+6. oil_dlh_release в режиме catchup фиксирует applied C1 тем же способом и применяет предыдущий принятый выпуск + raw с overlap к тем же таблицам. Далее oil_dlh_release работает без чтения GP. Новым target доставкам сначала создаются отрицательные batch_id по partition/offset и batch_control; исходный audit остаётся в INITIAL/raw.
 7. Неизвестные результаты операций и чужие изменения не стираются автоматически. Подтверждённые записи кандидата компенсируются в обратном порядке; источник, raw и принятый INITIAL сохраняются.
 
 Cedrus GP connector в этой версии не наследует native snapshot; поэтому он не используется для SELECT внутри этой GP-транзакции. Консистентность даёт PostgreSQL/GP MVCC, Airflow отвечает за жизненный цикл, зависимости и журнал. Общей ACID-транзакции двадцати Iceberg-таблиц нет. Исторические source_lock/fence/capture механизмы не входят в текущий маршрут.

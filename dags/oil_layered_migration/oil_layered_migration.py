@@ -19,9 +19,9 @@ def migrate_and_validate(**context):
     """Copy all twenty GP objects with Cedrus only, validate the shared C0 and accept READY."""
     conf=context['dag_run'].conf or {}
     if set(conf)-{'mode'}:
-        raise ValueError('INITIAL accepts only mode=initial; use oil_dlh_catchup for changes')
+        raise ValueError('INITIAL accepts only mode=initial; use oil_dlh_release with mode=catchup for changes')
     mode=conf.get('mode','initial')
-    if mode!='initial':raise ValueError('Use oil_dlh_catchup for in-place catchup; _next is retired')
+    if mode!='initial':raise ValueError('Use oil_dlh_release with mode=catchup for in-place catchup; _next is retired')
     client=MCP(os.environ['OIL_TRINO_MCP_URL'],os.environ.get('OIL_MCP_CA_FILE'),os.environ.get('OIL_MCP_BEARER_FILE'))
     source=DirectSource(client,mode,context['run_id'])
     runner=Runner(client,'initial',context['run_id'],source_guard=source)

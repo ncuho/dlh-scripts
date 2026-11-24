@@ -2,12 +2,10 @@
 
 Разбирает envelope JSON в STG: тип, ID, версию, операцию, время и payload без изменения исходного документа.
 
-Источник: `oil_stg.v_event_parsed`. Целевая relation — физическая Iceberg таблица immutable release; для исходного view материализация заменяет runtime-view, бизнес-контракт сохраняется.
+Источник — `oil_stg.v_event_parsed`, целевая Iceberg-таблица — `dlh.bronze.v_event_parsed`. Имена и UUID сохраняются при догоне.
 
-`ddl.sql` создаёт пустой объект через Cedrus/Trino. `initial.sql` — spark SELECT для C0. `refresh.sql` — spark SELECT для нового выпуска. `checks.sql` содержит блокирующие проверки с явной phase; исполняйте только проверки нужной фазы и both.
+`ddl.sql` создаёт объект; `initial.sql` задаёт прямую копию согласованного GP C0 через Cedrus без Spark. `checks/` хранит проверки ключей, ссылок и данных. Все 20 объектов проверяет одна task migrate_and_validate в oil_layered_migration.
 
-Зависимости INITIAL: `oil_stg__event_log`. REFRESH: `oil_stg__event_log`.
+Исполняемая Spark-обработка — `pipelines/oil_dlh_release/oil_stg__v_event_parsed/apply.sql`: MERGE Bronze/Silver либо пересчёт Gold, с предыдущими snapshots и ограниченным окном raw. Её вызывают oil_dlh_catchup и oil_dlh_release. Здесь `refresh.sql` сохранён как исходный шаблон переноса логики; поверх живых таблиц вручную его не запускают.
 
-Исторические ключи, точность Decimal, valid-time, удаления и правила выбора версий сохраняются в SQL. Новые технические load_dts/batch_id/received_at могут отличаться между движками; границы их сравнения заданы checks. Не заменяйте полную сверку одним COUNT или суммой.
-
-Текущая раскладка: INITIAL — `dlh.bronze.v_event_parsed`, REFRESH — `dlh.bronze.v_event_parsed_next`. Загрузка и проверки выполняются задачей `oil_stg__v_event_parsed` в `oil_layered_migration`; зависимости и фазы заданы `oil_layered_plan.py`.
+Ключи, Decimal, valid-time и удаления сохраняются; перенос GP-ограничений реализован явными DQ-gates и порядком родителей. Не заменяйте сверку значений одним COUNT.

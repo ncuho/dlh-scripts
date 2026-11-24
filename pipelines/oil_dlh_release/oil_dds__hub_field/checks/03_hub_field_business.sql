@@ -1,0 +1,2 @@
+-- Ключи полностью соответствуют field-истории и исходной формуле md5.
+WITH expected AS (SELECT DISTINCT lower(to_hex(md5(to_utf8('field:' || entity_id)))) AS field_hk,entity_id AS field_id FROM {{target:oil_dds__event}} WHERE event_type='field'), actual AS (SELECT field_hk,field_id FROM {{target:oil_dds__hub_field}}) SELECT count(*) AS n FROM ((SELECT * FROM expected EXCEPT ALL SELECT * FROM actual) UNION ALL (SELECT * FROM actual EXCEPT ALL SELECT * FROM expected)) q;

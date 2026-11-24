@@ -1,8 +1,2 @@
--- Учитывает состояния исходных партий и завершённость применения. История читается из C0; исходная GP-функция повторно не запускается.
-SELECT batch_id,
-       created_at,
-       error_text,
-       source_manifest,
-       source_name,
-       status
-FROM {{source:oil_stg__batch_control}};
+-- Копирует объект согласованного среза GP без пересчёта бизнес-логики; запись выполняет CedrusData Engine.
+SELECT batch_id,source_name,created_at,status,source_manifest,error_text FROM {{source:oil_stg__batch_control}};

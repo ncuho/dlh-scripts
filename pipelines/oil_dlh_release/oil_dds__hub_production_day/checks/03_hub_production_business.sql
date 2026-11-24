@@ -1,0 +1,2 @@
+-- Полнота production_day-ключей и исходный префикс production:.
+WITH expected AS (SELECT DISTINCT lower(to_hex(md5(to_utf8('production:' || entity_id)))) AS production_hk,entity_id AS production_id FROM {{target:oil_dds__event}} WHERE event_type='production_day'), actual AS (SELECT production_hk,production_id FROM {{target:oil_dds__hub_production_day}}) SELECT count(*) AS n FROM ((SELECT * FROM expected EXCEPT ALL SELECT * FROM actual) UNION ALL (SELECT * FROM actual EXCEPT ALL SELECT * FROM expected)) q;

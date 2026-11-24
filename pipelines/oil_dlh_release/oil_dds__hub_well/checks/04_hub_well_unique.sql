@@ -1,0 +1,2 @@
+-- Уникальность бизнес-ключа и хеша; обязательные audit-поля.
+SELECT count(*) AS n FROM (SELECT well_hk AS k FROM {{target:oil_dds__hub_well}} GROUP BY well_hk HAVING well_hk IS NULL OR count(*)>1 UNION ALL SELECT well_id AS k FROM {{target:oil_dds__hub_well}} GROUP BY well_id HAVING well_id IS NULL OR count(*)>1 UNION ALL SELECT well_hk AS k FROM {{target:oil_dds__hub_well}} WHERE load_dts IS NULL OR record_source IS NULL) q;

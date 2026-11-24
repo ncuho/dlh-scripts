@@ -2,12 +2,10 @@
 
 Хранит следующий ожидаемый offset каждой партиции. Обновляется в одной транзакции с записью события в GP.
 
-Источник: `oil_stg.kafka_checkpoint`. Целевая relation — физическая Iceberg таблица immutable release; для исходного view материализация заменяет runtime-view, бизнес-контракт сохраняется.
+Источник — `oil_stg.kafka_checkpoint`, целевая Iceberg-таблица — `dlh.bronze.kafka_checkpoint`. Имена и UUID сохраняются при догоне.
 
-`ddl.sql` создаёт пустой объект через Cedrus/Trino. `initial.sql` — trino SELECT для C0. `refresh.sql` — trino SELECT для нового выпуска. `checks.sql` содержит блокирующие проверки с явной phase; исполняйте только проверки нужной фазы и both.
+`ddl.sql` создаёт объект; `initial.sql` задаёт прямую копию согласованного GP C0 через Cedrus без Spark. `checks/` хранит проверки ключей, ссылок и данных. Все 20 объектов проверяет одна task migrate_and_validate в oil_layered_migration.
 
-Зависимости INITIAL: исходный capture. REFRESH: закреплённый INITIAL / raw.
+Исполняемая Spark-обработка — `pipelines/oil_dlh_release/oil_stg__kafka_checkpoint/apply.sql`: MERGE Bronze/Silver либо пересчёт Gold, с предыдущими snapshots и ограниченным окном raw. Её вызывают oil_dlh_catchup и oil_dlh_release. Здесь `refresh.sql` сохранён как исходный шаблон переноса логики; поверх живых таблиц вручную его не запускают.
 
-Исторические ключи, точность Decimal, valid-time, удаления и правила выбора версий сохраняются в SQL. Новые технические load_dts/batch_id/received_at могут отличаться между движками; границы их сравнения заданы checks. Не заменяйте полную сверку одним COUNT или суммой.
-
-Текущая раскладка: INITIAL — `dlh.bronze.kafka_checkpoint`, REFRESH — `dlh.bronze.kafka_checkpoint_next`. Загрузка и проверки выполняются задачей `oil_stg__kafka_checkpoint` в `oil_layered_migration`; зависимости и фазы заданы `oil_layered_plan.py`.
+Ключи, Decimal, valid-time и удаления сохраняются; перенос GP-ограничений реализован явными DQ-gates и порядком родителей. Не заменяйте сверку значений одним COUNT.

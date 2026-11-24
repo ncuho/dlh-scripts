@@ -1,0 +1,2 @@
+-- полное равенство истории скважин и интервалов [valid_from,valid_to).
+WITH s AS (SELECT well_hk,field_hk,entity_version,valid_from,valid_to,well_name,status,is_deleted FROM {{source:oil_mart__dim_well}}), t AS (SELECT well_hk,field_hk,entity_version,valid_from,valid_to,well_name,status,is_deleted FROM {{target:oil_mart__dim_well}}), d AS ((SELECT * FROM s EXCEPT ALL SELECT * FROM t) UNION ALL (SELECT * FROM t EXCEPT ALL SELECT * FROM s)) SELECT count(*) AS n FROM d;

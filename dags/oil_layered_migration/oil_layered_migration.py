@@ -4,7 +4,6 @@ from pathlib import Path
 import json
 import os
 import sys
-import uuid
 from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
 
@@ -13,20 +12,19 @@ sys.path.insert(0,str(ROOT))
 from oil_layered_plan import OPERATIONS
 from oil_layered_runtime import Runner
 from oil_layered_cedrus import MCP
-from oil_layered_spark import SparkClient
 from oil_direct_source import DirectSource
 
 
 def migrate_and_validate(**context):
-    """Read one GP cut, load parents before children, run Spark and all quality gates, then accept READY."""
+    """Copy all twenty GP objects with Cedrus only, validate the shared C0 and accept READY."""
     conf=context['dag_run'].conf or {}
-    if set(conf)-{'mode','overlap_offsets'}:
-        raise ValueError('Use only mode and optional overlap_offsets; export/lock IDs are obsolete')
-    mode=conf.get('mode')
+    if set(conf)-{'mode'}:
+        raise ValueError('INITIAL accepts only mode=initial; use oil_dlh_catchup for changes')
+    mode=conf.get('mode','initial')
+    if mode!='initial':raise ValueError('Use oil_dlh_catchup for in-place catchup; _next is retired')
     client=MCP(os.environ['OIL_TRINO_MCP_URL'],os.environ.get('OIL_MCP_CA_FILE'),os.environ.get('OIL_MCP_BEARER_FILE'))
     source=DirectSource(client,mode,context['run_id'])
-    runner=Runner(client,mode,context['run_id'],spark_factory=lambda:SparkClient('bridge_'+uuid.uuid4().hex),
-                  overlap_offsets=conf.get('overlap_offsets',10),source_guard=source)
+    runner=Runner(client,'initial',context['run_id'],source_guard=source)
     try:
         runner.prepare()
         for index,op in enumerate(OPERATIONS,1):
@@ -46,9 +44,9 @@ def migrate_and_validate(**context):
     return result
 
 
-with DAG(dag_id='oil_layered_migration',description='Прямая миграция GP в Bronze/Silver/Gold, Spark, ключи и сверки',
+with DAG(dag_id='oil_layered_migration',description='Первичная загрузка 20 таблиц GP через CedrusData Engine и сверки C0',
          start_date=datetime(2026,1,1),schedule=None,catchup=False,max_active_runs=1,
          is_paused_upon_creation=True,default_args={'retries':0,'execution_timeout':timedelta(minutes=60)},
-         tags=['oil','bronze','silver','gold']) as dag:
+         tags=['oil','initial','cedrus']) as dag:
     # Последовательность двадцати объектов выполняется в одном процессе ради общего snapshot, а не параллельно.
-    PythonOperator(task_id='migrate_and_validate',python_callable=migrate_and_validate)
+    PythonOperator(task_id='migrate_and_validate',python_callable=migrate_and_validate,pool='oil_dlh_writer')

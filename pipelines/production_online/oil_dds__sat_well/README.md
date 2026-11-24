@@ -2,12 +2,10 @@
 
 Сохраняет версии атрибутов скважины, event_id, entity_version и операцию U/D. GP хранит типизированный payload и audit-поля; release DLH использует логическую проекцию с исходным document.
 
-Источник: `oil_dds.sat_well`. Целевая relation — физическая Iceberg таблица immutable release; для исходного view материализация заменяет runtime-view, бизнес-контракт сохраняется.
+Источник — `oil_dds.sat_well`, целевая Iceberg-таблица — `dlh.silver.sat_well`. Имена и UUID сохраняются при догоне.
 
-`ddl.sql` создаёт пустой объект через Cedrus/Trino. `initial.sql` — trino SELECT для C0. `refresh.sql` — spark SELECT для нового выпуска. `checks.sql` содержит блокирующие проверки с явной phase; исполняйте только проверки нужной фазы и both.
+`ddl.sql` создаёт объект; `initial.sql` задаёт прямую копию согласованного GP C0 через Cedrus без Spark. `checks/` хранит проверки ключей, ссылок и данных. Все 20 объектов проверяет одна task migrate_and_validate в oil_layered_migration.
 
-Зависимости INITIAL: исходный capture. REFRESH: `oil_dds__event`.
+Исполняемая Spark-обработка — `pipelines/oil_dlh_release/oil_dds__sat_well/apply.sql`: MERGE Bronze/Silver либо пересчёт Gold, с предыдущими snapshots и ограниченным окном raw. Её вызывают oil_dlh_catchup и oil_dlh_release. Здесь `refresh.sql` сохранён как исходный шаблон переноса логики; поверх живых таблиц вручную его не запускают.
 
-Исторические ключи, точность Decimal, valid-time, удаления и правила выбора версий сохраняются в SQL. Новые технические load_dts/batch_id/received_at могут отличаться между движками; границы их сравнения заданы checks. Не заменяйте полную сверку одним COUNT или суммой.
-
-Текущая раскладка: INITIAL — `dlh.silver.sat_well`, REFRESH — `dlh.silver.sat_well_next`. Загрузка и проверки выполняются задачей `oil_dds__sat_well` в `oil_layered_migration`; зависимости и фазы заданы `oil_layered_plan.py`.
+Ключи, Decimal, valid-time и удаления сохраняются; перенос GP-ограничений реализован явными DQ-gates и порядком родителей. Не заменяйте сверку значений одним COUNT.

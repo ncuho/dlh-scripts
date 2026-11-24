@@ -1,0 +1,2 @@
+-- полное равенство SCD2, включая конечные границы и удаления.
+WITH s AS (SELECT field_hk,entity_version,valid_from,valid_to,field_name,region,is_deleted FROM {{source:oil_mart__dim_field}}), t AS (SELECT field_hk,entity_version,valid_from,valid_to,field_name,region,is_deleted FROM {{target:oil_mart__dim_field}}), d AS ((SELECT * FROM s EXCEPT ALL SELECT * FROM t) UNION ALL (SELECT * FROM t EXCEPT ALL SELECT * FROM s)) SELECT count(*) AS n FROM d;

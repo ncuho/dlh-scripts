@@ -1,0 +1,2 @@
+-- Уникальность хеша и production_id; обязательные audit-поля.
+SELECT count(*) AS n FROM (SELECT production_hk AS k FROM {{target:oil_dds__hub_production_day}} GROUP BY production_hk HAVING production_hk IS NULL OR count(*)>1 UNION ALL SELECT production_id AS k FROM {{target:oil_dds__hub_production_day}} GROUP BY production_id HAVING production_id IS NULL OR count(*)>1 UNION ALL SELECT production_hk AS k FROM {{target:oil_dds__hub_production_day}} WHERE load_dts IS NULL OR record_source IS NULL) q;

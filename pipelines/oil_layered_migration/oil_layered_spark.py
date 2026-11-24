@@ -170,8 +170,64 @@ print('PB_COMMAND_RESULT:'+_pb_json.dumps(_pb_receipt,default=str),flush=True)
         return document['result']
 
     def sql(self,query):
-        """Выполняет SQL через зарегистрированный движок и возвращает фактические строки результата."""
-        return self.execute('import json\n_result=spark.sql('+repr(query)+')\n_rows=[r.asDict(recursive=True) for r in _result.collect()]\nprint("PB_RESULT:"+json.dumps({"rows":_rows},default=str))')['rows']
+        """Dispatch SQL once in a background thread, then poll its durable receipt.
+
+        Long Spark MERGE commands outlive the MCP HTTP response deadline. The
+        SQL runs outside the kernel's foreground execution slot, so polling is
+        responsive and never interrupts/re-submits an in-flight table commit.
+        """
+        import hashlib,time,uuid
+        request_id=uuid.uuid4().hex
+        digest=hashlib.sha256(query.encode()).hexdigest()
+        path='/home/admin/.platform_bridge_results/'+self.name+'/'+request_id+'.json'
+        code="""import threading as _oil_threading,json as _oil_json,os as _oil_os
+from pathlib import Path as _oil_Path
+def _oil_run_sql(_sql,_path,_id,_hash,_session):
+    _file=_oil_Path(_path)
+    try:
+        _rows=[r.asDict(recursive=True) for r in _session.sql(_sql).collect()]
+        _value={'request_id':_id,'code_hash':_hash,'status':'SUCCEEDED','result':{'rows':_rows}}
+    except BaseException as _error:
+        _value={'request_id':_id,'code_hash':_hash,'status':'FAILED','error_type':type(_error).__name__}
+    _tmp=_file.with_suffix('.tmp')
+    _tmp.write_text(_oil_json.dumps(_value,default=str));_tmp.chmod(0o600)
+    _oil_os.replace(_tmp,_file)
+_oil_file=_oil_Path(PATH)
+_oil_file.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
+if _oil_file.exists():raise FileExistsError('Never dispatch the same SQL request twice')
+_oil_file.write_text(_oil_json.dumps({'request_id':REQUEST,'code_hash':HASH,'status':'RUNNING'}));_oil_file.chmod(0o600)
+_oil_threading.Thread(target=_oil_run_sql,args=(QUERY,PATH,REQUEST,HASH,spark),daemon=True).start()
+print('PB_RESULT:'+_oil_json.dumps({'request_id':REQUEST,'dispatched':True}))
+"""
+        # Replace only exact uppercase sentinels, before any external execution.
+        for key,value in [('PATH',repr(path)),('REQUEST',repr(request_id)),('HASH',repr(digest)),('QUERY',repr(query))]:
+            code=code.replace(key,value)
+        try:self.execute(code)
+        except (RuntimeError,OSError,ValueError):pass
+        reader="import json;from pathlib import Path\np=Path("+repr(path)+")\nprint('PB_SQL_RESULT:'+(p.read_text() if p.exists() else '{}'),flush=True)"
+        deadline=time.monotonic()+1200;last_log=0
+        while time.monotonic()<deadline:
+            try:response=self.tool('execute_code',{'code':reader,'timeout':20,'kernel_id':self.kernel})
+            except (RuntimeError,OSError,ValueError):response=None
+            texts=[]
+            def collect(value):
+                if isinstance(value,str):texts.append(value)
+                elif isinstance(value,dict):
+                    for child in value.values():collect(child)
+                elif isinstance(value,list):
+                    for child in value:collect(child)
+            collect(response)
+            for text in texts:
+                for match in re.finditer('PB_SQL_RESULT:',text):
+                    try:value=json.JSONDecoder().raw_decode(text[match.end():].lstrip())[0]
+                    except (ValueError,TypeError):continue
+                    if value.get('request_id')!=request_id or value.get('code_hash')!=digest:continue
+                    if value.get('status')=='SUCCEEDED':return value['result']['rows']
+                    if value.get('status')=='FAILED':raise RuntimeError('Spark SQL failed: '+value.get('error_type','unknown')+'; receipt '+request_id)
+            if time.monotonic()-last_log>=15:
+                print(json.dumps({'phase':'SPARK_SQL_RUNNING','request_id':request_id,'notebook':self.name}),flush=True);last_log=time.monotonic()
+            time.sleep(2)
+        raise RuntimeError('Spark SQL outcome unknown; inspect receipt '+request_id+' without resubmitting')
 
     def close(self):
         """Закрывает принадлежащую запуску сессию или ресурс; бизнес-данные не удаляет."""

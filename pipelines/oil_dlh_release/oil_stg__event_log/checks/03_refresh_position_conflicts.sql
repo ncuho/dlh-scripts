@@ -1,0 +1,2 @@
+-- повтор позиции Kafka с другим исходным JSON запрещает публикацию.
+WITH r AS (SELECT topic,kafka_partition,kafka_offset,event_json FROM {{target:oil_stg__event_log}} UNION ALL SELECT topic,kafka_partition,kafka_offset,event_json FROM {{raw_window}}) SELECT count(*) AS n FROM (SELECT topic,kafka_partition,kafka_offset FROM r GROUP BY topic,kafka_partition,kafka_offset HAVING count(DISTINCT event_json)>1 OR count(event_json)<>count(*)) q;

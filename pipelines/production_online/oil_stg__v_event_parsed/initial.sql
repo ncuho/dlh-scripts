@@ -1,15 +1,2 @@
--- Spark извлекает envelope; bridge_json_payload сохраняет точный JSON payload, чтобы hashdiff совпал с GP. Это Spark-проекция вместо исходного view GP.
-SELECT batch_id,
-       topic,
-       kafka_partition,
-       kafka_offset,
-       event_json,
-       try_cast(get_json_object(event_json, '$.schema_version') AS INT) AS schema_version,
-       get_json_object(event_json, '$.event_id') AS event_id,
-       get_json_object(event_json, '$.event_type') AS event_type,
-       get_json_object(event_json, '$.entity_id') AS entity_id,
-       try_cast(get_json_object(event_json, '$.entity_version') AS BIGINT) AS entity_version,
-       get_json_object(event_json, '$.op') AS op,
-       try_cast(get_json_object(event_json, '$.event_time') AS TIMESTAMP) AS event_time,
-       bridge_json_payload(event_json) AS payload
-FROM {{target:oil_stg__event_log}};
+-- Копирует объект согласованного среза GP без пересчёта бизнес-логики; запись выполняет CedrusData Engine.
+SELECT topic,kafka_partition,kafka_offset,batch_id,event_json,schema_version,event_id,event_type,entity_id,entity_version,op,event_time,payload FROM {{source:oil_stg__v_event_parsed}};

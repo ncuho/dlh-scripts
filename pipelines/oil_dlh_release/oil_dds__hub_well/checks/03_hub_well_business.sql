@@ -1,0 +1,2 @@
+-- Полнота ключей well и исходная формула md5('well:' || entity_id).
+WITH expected AS (SELECT DISTINCT lower(to_hex(md5(to_utf8('well:' || entity_id)))) AS well_hk,entity_id AS well_id FROM {{target:oil_dds__event}} WHERE event_type='well'), actual AS (SELECT well_hk,well_id FROM {{target:oil_dds__hub_well}}) SELECT count(*) AS n FROM ((SELECT * FROM expected EXCEPT ALL SELECT * FROM actual) UNION ALL (SELECT * FROM actual EXCEPT ALL SELECT * FROM expected)) q;

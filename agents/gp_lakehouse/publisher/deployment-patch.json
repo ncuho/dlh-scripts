@@ -1,0 +1,41 @@
+{
+  "spec": {
+    "template": {
+      "spec": {
+        "volumes": [
+          {
+            "name": "reviewed-publisher",
+            "configMap": {
+              "name": "airflow-mcp-reviewed-publisher"
+            }
+          }
+        ],
+        "containers": [
+          {
+            "name": "airflow-mcp",
+            "env": [
+              {
+                "name": "REVIEWED_DAG_DIR",
+                "value": "/opt/airflow-mcp/reviewed"
+              }
+            ],
+            "volumeMounts": [
+              {
+                "name": "reviewed-publisher",
+                "mountPath": "/opt/airflow-mcp/src/airflow_mcp/tools/dag_publish.py",
+                "subPath": "dag_publish.py",
+                "readOnly": true
+              },
+              {
+                "name": "reviewed-publisher",
+                "mountPath": "/opt/airflow-mcp/reviewed/oil_production_spark_candidate.py",
+                "subPath": "oil_production_spark_candidate.py",
+                "readOnly": true
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,2 @@
+-- Исходные версии и их аудит остаются неизменными.
+SELECT count(*) AS n FROM (SELECT well_hk,link_hk,event_id,entity_version,op,event_time,load_dts,record_source,hashdiff,well_name,valid_from,status FROM {{previous:oil_dds__sat_well}} EXCEPT ALL SELECT well_hk,link_hk,event_id,entity_version,op,event_time,load_dts,record_source,hashdiff,well_name,valid_from,status FROM {{target:oil_dds__sat_well}}) q;

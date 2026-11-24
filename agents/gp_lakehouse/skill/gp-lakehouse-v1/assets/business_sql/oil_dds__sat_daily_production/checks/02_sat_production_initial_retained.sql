@@ -1,0 +1,2 @@
+-- Сохранение всех первоначальных версий и аудита.
+SELECT count(*) AS n FROM (SELECT production_hk,link_hk,event_id,entity_version,op,event_time,load_dts,record_source,hashdiff,production_date,oil_tonnes,status FROM {{previous:oil_dds__sat_daily_production}} EXCEPT ALL SELECT production_hk,link_hk,event_id,entity_version,op,event_time,load_dts,record_source,hashdiff,production_date,oil_tonnes,status FROM {{target:oil_dds__sat_daily_production}}) q;

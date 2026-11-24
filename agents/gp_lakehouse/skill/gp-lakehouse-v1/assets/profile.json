@@ -1,0 +1,838 @@
+{
+  "artifacts": [
+    {
+      "asset": "source/ddl/tables/oil_stg/batch_control/batch_control.sql",
+      "mode": "all",
+      "path": "source/ddl/tables/oil_stg/batch_control/batch_control.sql"
+    },
+    {
+      "asset": "ddl/oil_stg__batch_control.sql",
+      "mode": "ddl",
+      "path": "ddl/oil_stg__batch_control.sql"
+    },
+    {
+      "asset": "source/ddl/tables/oil_stg/batch_coalesce_map/batch_coalesce_map.sql",
+      "mode": "all",
+      "path": "source/ddl/tables/oil_stg/batch_coalesce_map/batch_coalesce_map.sql"
+    },
+    {
+      "asset": "ddl/oil_stg__batch_coalesce_map.sql",
+      "mode": "ddl",
+      "path": "ddl/oil_stg__batch_coalesce_map.sql"
+    },
+    {
+      "asset": "source/ddl/tables/oil_stg/event_log/event_log.sql",
+      "mode": "all",
+      "path": "source/ddl/tables/oil_stg/event_log/event_log.sql"
+    },
+    {
+      "asset": "ddl/oil_stg__event_log.sql",
+      "mode": "ddl",
+      "path": "ddl/oil_stg__event_log.sql"
+    },
+    {
+      "asset": "source/ddl/tables/oil_stg/batch_coalesce_event_map/batch_coalesce_event_map.sql",
+      "mode": "all",
+      "path": "source/ddl/tables/oil_stg/batch_coalesce_event_map/batch_coalesce_event_map.sql"
+    },
+    {
+      "asset": "ddl/oil_stg__batch_coalesce_event_map.sql",
+      "mode": "ddl",
+      "path": "ddl/oil_stg__batch_coalesce_event_map.sql"
+    },
+    {
+      "asset": "source/ddl/tables/oil_stg/kafka_checkpoint/kafka_checkpoint.sql",
+      "mode": "all",
+      "path": "source/ddl/tables/oil_stg/kafka_checkpoint/kafka_checkpoint.sql"
+    },
+    {
+      "asset": "ddl/oil_stg__kafka_checkpoint.sql",
+      "mode": "ddl",
+      "path": "ddl/oil_stg__kafka_checkpoint.sql"
+    },
+    {
+      "asset": "source/views/oil_stg/v_event_parsed/v_event_parsed.sql",
+      "mode": "all",
+      "path": "source/views/oil_stg/v_event_parsed/v_event_parsed.sql"
+    },
+    {
+      "asset": "ddl/oil_stg__v_event_parsed.sql",
+      "mode": "ddl",
+      "path": "ddl/oil_stg__v_event_parsed.sql"
+    },
+    {
+      "asset": "source/ddl/tables/oil_dds/event/event.sql",
+      "mode": "all",
+      "path": "source/ddl/tables/oil_dds/event/event.sql"
+    },
+    {
+      "asset": "ddl/oil_dds__event.sql",
+      "mode": "ddl",
+      "path": "ddl/oil_dds__event.sql"
+    },
+    {
+      "asset": "source/ddl/tables/oil_dds/hub_field/hub_field.sql",
+      "mode": "all",
+      "path": "source/ddl/tables/oil_dds/hub_field/hub_field.sql"
+    },
+    {
+      "asset": "ddl/oil_dds__hub_field.sql",
+      "mode": "ddl",
+      "path": "ddl/oil_dds__hub_field.sql"
+    },
+    {
+      "asset": "source/ddl/tables/oil_dds/hub_production_day/hub_production_day.sql",
+      "mode": "all",
+      "path": "source/ddl/tables/oil_dds/hub_production_day/hub_production_day.sql"
+    },
+    {
+      "asset": "ddl/oil_dds__hub_production_day.sql",
+      "mode": "ddl",
+      "path": "ddl/oil_dds__hub_production_day.sql"
+    },
+    {
+      "asset": "source/ddl/tables/oil_dds/hub_well/hub_well.sql",
+      "mode": "all",
+      "path": "source/ddl/tables/oil_dds/hub_well/hub_well.sql"
+    },
+    {
+      "asset": "ddl/oil_dds__hub_well.sql",
+      "mode": "ddl",
+      "path": "ddl/oil_dds__hub_well.sql"
+    },
+    {
+      "asset": "source/ddl/tables/oil_dds/link_production_day_well/link_production_day_well.sql",
+      "mode": "all",
+      "path": "source/ddl/tables/oil_dds/link_production_day_well/link_production_day_well.sql"
+    },
+    {
+      "asset": "ddl/oil_dds__link_production_day_well.sql",
+      "mode": "ddl",
+      "path": "ddl/oil_dds__link_production_day_well.sql"
+    },
+    {
+      "asset": "source/ddl/tables/oil_dds/link_well_field/link_well_field.sql",
+      "mode": "all",
+      "path": "source/ddl/tables/oil_dds/link_well_field/link_well_field.sql"
+    },
+    {
+      "asset": "ddl/oil_dds__link_well_field.sql",
+      "mode": "ddl",
+      "path": "ddl/oil_dds__link_well_field.sql"
+    },
+    {
+      "asset": "source/ddl/tables/oil_dds/sat_daily_production/sat_daily_production.sql",
+      "mode": "all",
+      "path": "source/ddl/tables/oil_dds/sat_daily_production/sat_daily_production.sql"
+    },
+    {
+      "asset": "ddl/oil_dds__sat_daily_production.sql",
+      "mode": "ddl",
+      "path": "ddl/oil_dds__sat_daily_production.sql"
+    },
+    {
+      "asset": "source/ddl/tables/oil_dds/sat_field/sat_field.sql",
+      "mode": "all",
+      "path": "source/ddl/tables/oil_dds/sat_field/sat_field.sql"
+    },
+    {
+      "asset": "ddl/oil_dds__sat_field.sql",
+      "mode": "ddl",
+      "path": "ddl/oil_dds__sat_field.sql"
+    },
+    {
+      "asset": "source/ddl/tables/oil_dds/sat_well/sat_well.sql",
+      "mode": "all",
+      "path": "source/ddl/tables/oil_dds/sat_well/sat_well.sql"
+    },
+    {
+      "asset": "ddl/oil_dds__sat_well.sql",
+      "mode": "ddl",
+      "path": "ddl/oil_dds__sat_well.sql"
+    },
+    {
+      "asset": "source/ddl/tables/oil_mart/dim_field/dim_field.sql",
+      "mode": "all",
+      "path": "source/ddl/tables/oil_mart/dim_field/dim_field.sql"
+    },
+    {
+      "asset": "ddl/oil_mart__dim_field.sql",
+      "mode": "ddl",
+      "path": "ddl/oil_mart__dim_field.sql"
+    },
+    {
+      "asset": "source/ddl/tables/oil_mart/dim_well/dim_well.sql",
+      "mode": "all",
+      "path": "source/ddl/tables/oil_mart/dim_well/dim_well.sql"
+    },
+    {
+      "asset": "ddl/oil_mart__dim_well.sql",
+      "mode": "ddl",
+      "path": "ddl/oil_mart__dim_well.sql"
+    },
+    {
+      "asset": "source/ddl/tables/oil_mart/fact_well_day/fact_well_day.sql",
+      "mode": "all",
+      "path": "source/ddl/tables/oil_mart/fact_well_day/fact_well_day.sql"
+    },
+    {
+      "asset": "ddl/oil_mart__fact_well_day.sql",
+      "mode": "ddl",
+      "path": "ddl/oil_mart__fact_well_day.sql"
+    },
+    {
+      "asset": "source/ddl/tables/oil_mart/agg_field_day/agg_field_day.sql",
+      "mode": "all",
+      "path": "source/ddl/tables/oil_mart/agg_field_day/agg_field_day.sql"
+    },
+    {
+      "asset": "ddl/oil_mart__agg_field_day.sql",
+      "mode": "ddl",
+      "path": "ddl/oil_mart__agg_field_day.sql"
+    },
+    {
+      "asset": "source/views/oil_mart/v_field_production/v_field_production.sql",
+      "mode": "all",
+      "path": "source/views/oil_mart/v_field_production/v_field_production.sql"
+    },
+    {
+      "asset": "ddl/oil_mart__v_field_production.sql",
+      "mode": "ddl",
+      "path": "ddl/oil_mart__v_field_production.sql"
+    },
+    {
+      "asset": "all_ddl.sql",
+      "mode": "ddl",
+      "path": "all_ddl.sql"
+    },
+    {
+      "asset": "raw_ingestion_ddl.sql",
+      "mode": "ddl",
+      "path": "raw_ingestion_ddl.sql"
+    },
+    {
+      "asset": "source/functions/oil_dds/apply_batch/apply_batch.sql",
+      "mode": "all",
+      "path": "source/functions/oil_dds/apply_batch/apply_batch.sql"
+    },
+    {
+      "asset": "source/functions/oil_mart/refresh_downtime/refresh_downtime.sql",
+      "mode": "all",
+      "path": "source/functions/oil_mart/refresh_downtime/refresh_downtime.sql"
+    },
+    {
+      "asset": "source/functions/oil_mart/refresh_production/refresh_production.sql",
+      "mode": "all",
+      "path": "source/functions/oil_mart/refresh_production/refresh_production.sql"
+    },
+    {
+      "asset": "source/functions/oil_stg/coalesce_ready_batches/coalesce_ready_batches.sql",
+      "mode": "all",
+      "path": "source/functions/oil_stg/coalesce_ready_batches/coalesce_ready_batches.sql"
+    },
+    {
+      "asset": "source/dags/oil_gp_release/oil_gp_release.py",
+      "mode": "all",
+      "path": "source/dags/oil_gp_release/oil_gp_release.py"
+    },
+    {
+      "asset": "runtime/oil_direct_source.py",
+      "mode": "logic",
+      "path": "runtime/oil_direct_source.py"
+    },
+    {
+      "asset": "runtime/oil_dlh_jobs.py",
+      "mode": "logic",
+      "path": "runtime/oil_dlh_jobs.py"
+    },
+    {
+      "asset": "runtime/oil_gp_snapshot.py",
+      "mode": "logic",
+      "path": "runtime/oil_gp_snapshot.py"
+    },
+    {
+      "asset": "runtime/oil_layered_cedrus.py",
+      "mode": "logic",
+      "path": "runtime/oil_layered_cedrus.py"
+    },
+    {
+      "asset": "runtime/oil_layered_plan.py",
+      "mode": "logic",
+      "path": "runtime/oil_layered_plan.py"
+    },
+    {
+      "asset": "runtime/oil_layered_runtime.py",
+      "mode": "logic",
+      "path": "runtime/oil_layered_runtime.py"
+    },
+    {
+      "asset": "runtime/oil_layered_spark.py",
+      "mode": "logic",
+      "path": "runtime/oil_layered_spark.py"
+    },
+    {
+      "asset": "business_sql/oil_dds__event/apply.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__event/apply.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__event/checks/02_event_initial_retained.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__event/checks/02_event_initial_retained.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__event/checks/03_event_stage_business_coverage.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__event/checks/03_event_stage_business_coverage.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__event/checks/04_event_id_and_version_conflicts.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__event/checks/04_event_id_and_version_conflicts.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__event/checks/05_batch_fk.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__event/checks/05_batch_fk.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__event/checks/05_event_new_rows_audit_and_coverage.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__event/checks/05_event_new_rows_audit_and_coverage.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__event/checks/06_event_document_consistency.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__event/checks/06_event_document_consistency.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__hub_field/apply.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__hub_field/apply.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__hub_field/checks/02_hub_field_initial_retained.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__hub_field/checks/02_hub_field_initial_retained.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__hub_field/checks/03_hub_field_business.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__hub_field/checks/03_hub_field_business.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__hub_field/checks/04_hub_field_unique.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__hub_field/checks/04_hub_field_unique.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__hub_production_day/apply.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__hub_production_day/apply.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__hub_production_day/checks/02_hub_production_initial_retained.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__hub_production_day/checks/02_hub_production_initial_retained.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__hub_production_day/checks/03_hub_production_business.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__hub_production_day/checks/03_hub_production_business.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__hub_production_day/checks/04_hub_production_unique.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__hub_production_day/checks/04_hub_production_unique.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__hub_well/apply.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__hub_well/apply.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__hub_well/checks/02_hub_well_initial_retained.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__hub_well/checks/02_hub_well_initial_retained.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__hub_well/checks/03_hub_well_business.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__hub_well/checks/03_hub_well_business.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__hub_well/checks/04_hub_well_unique.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__hub_well/checks/04_hub_well_unique.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__link_production_day_well/apply.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__link_production_day_well/apply.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__link_production_day_well/checks/02_link_production_well_initial_retained.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__link_production_day_well/checks/02_link_production_well_initial_retained.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__link_production_day_well/checks/03_link_production_well_business.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__link_production_day_well/checks/03_link_production_well_business.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__link_production_day_well/checks/04_link_production_well_keys_and_references.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__link_production_day_well/checks/04_link_production_well_keys_and_references.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__link_well_field/apply.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__link_well_field/apply.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__link_well_field/checks/02_link_well_field_initial_retained.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__link_well_field/checks/02_link_well_field_initial_retained.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__link_well_field/checks/03_link_well_field_business.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__link_well_field/checks/03_link_well_field_business.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__link_well_field/checks/04_link_well_field_keys_and_references.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__link_well_field/checks/04_link_well_field_keys_and_references.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__sat_daily_production/apply.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__sat_daily_production/apply.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__sat_daily_production/checks/02_sat_production_initial_retained.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__sat_daily_production/checks/02_sat_production_initial_retained.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__sat_daily_production/checks/03_sat_production_business.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__sat_daily_production/checks/03_sat_production_business.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__sat_daily_production/checks/04_sat_production_keys_and_references.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__sat_daily_production/checks/04_sat_production_keys_and_references.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__sat_field/apply.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__sat_field/apply.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__sat_field/checks/02_sat_field_initial_retained.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__sat_field/checks/02_sat_field_initial_retained.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__sat_field/checks/03_sat_field_business.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__sat_field/checks/03_sat_field_business.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__sat_field/checks/04_sat_field_keys_and_references.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__sat_field/checks/04_sat_field_keys_and_references.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__sat_well/apply.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__sat_well/apply.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__sat_well/checks/02_sat_well_initial_retained.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__sat_well/checks/02_sat_well_initial_retained.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__sat_well/checks/03_sat_well_business.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__sat_well/checks/03_sat_well_business.sql"
+    },
+    {
+      "asset": "business_sql/oil_dds__sat_well/checks/04_sat_well_keys_and_references.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_dds__sat_well/checks/04_sat_well_keys_and_references.sql"
+    },
+    {
+      "asset": "business_sql/oil_mart__agg_field_day/apply.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_mart__agg_field_day/apply.sql"
+    },
+    {
+      "asset": "business_sql/oil_mart__agg_field_day/checks/01_initial_full_equality.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_mart__agg_field_day/checks/01_initial_full_equality.sql"
+    },
+    {
+      "asset": "business_sql/oil_mart__agg_field_day/checks/02_aggregate_components.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_mart__agg_field_day/checks/02_aggregate_components.sql"
+    },
+    {
+      "asset": "business_sql/oil_mart__agg_field_day/checks/03_ratio_exact_rounding.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_mart__agg_field_day/checks/03_ratio_exact_rounding.sql"
+    },
+    {
+      "asset": "business_sql/oil_mart__dim_field/apply.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_mart__dim_field/apply.sql"
+    },
+    {
+      "asset": "business_sql/oil_mart__dim_field/checks/01_initial_full_equality.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_mart__dim_field/checks/01_initial_full_equality.sql"
+    },
+    {
+      "asset": "business_sql/oil_mart__dim_field/checks/02_ambiguous_effective_dates.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_mart__dim_field/checks/02_ambiguous_effective_dates.sql"
+    },
+    {
+      "asset": "business_sql/oil_mart__dim_field/checks/03_scd2_rebuild_equality.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_mart__dim_field/checks/03_scd2_rebuild_equality.sql"
+    },
+    {
+      "asset": "business_sql/oil_mart__dim_well/apply.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_mart__dim_well/apply.sql"
+    },
+    {
+      "asset": "business_sql/oil_mart__dim_well/checks/01_initial_full_equality.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_mart__dim_well/checks/01_initial_full_equality.sql"
+    },
+    {
+      "asset": "business_sql/oil_mart__dim_well/checks/02_ambiguous_effective_dates.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_mart__dim_well/checks/02_ambiguous_effective_dates.sql"
+    },
+    {
+      "asset": "business_sql/oil_mart__dim_well/checks/03_scd2_rebuild_equality.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_mart__dim_well/checks/03_scd2_rebuild_equality.sql"
+    },
+    {
+      "asset": "business_sql/oil_mart__fact_well_day/apply.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_mart__fact_well_day/apply.sql"
+    },
+    {
+      "asset": "business_sql/oil_mart__fact_well_day/checks/01_initial_full_equality.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_mart__fact_well_day/checks/01_initial_full_equality.sql"
+    },
+    {
+      "asset": "business_sql/oil_mart__fact_well_day/checks/02_production_dimension_cardinality.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_mart__fact_well_day/checks/02_production_dimension_cardinality.sql"
+    },
+    {
+      "asset": "business_sql/oil_mart__fact_well_day/checks/03_well_status_consistency.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_mart__fact_well_day/checks/03_well_status_consistency.sql"
+    },
+    {
+      "asset": "business_sql/oil_mart__fact_well_day/checks/04_fact_rebuild_equality.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_mart__fact_well_day/checks/04_fact_rebuild_equality.sql"
+    },
+    {
+      "asset": "business_sql/oil_mart__v_field_production/apply.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_mart__v_field_production/apply.sql"
+    },
+    {
+      "asset": "business_sql/oil_mart__v_field_production/checks/01_initial_full_equality.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_mart__v_field_production/checks/01_initial_full_equality.sql"
+    },
+    {
+      "asset": "business_sql/oil_mart__v_field_production/checks/02_serving_rebuild_equality.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_mart__v_field_production/checks/02_serving_rebuild_equality.sql"
+    },
+    {
+      "asset": "business_sql/oil_stg__batch_coalesce_event_map/apply.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_stg__batch_coalesce_event_map/apply.sql"
+    },
+    {
+      "asset": "business_sql/oil_stg__batch_coalesce_event_map/checks/05_event_map_pk_fk.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_stg__batch_coalesce_event_map/checks/05_event_map_pk_fk.sql"
+    },
+    {
+      "asset": "business_sql/oil_stg__batch_coalesce_map/apply.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_stg__batch_coalesce_map/apply.sql"
+    },
+    {
+      "asset": "business_sql/oil_stg__batch_coalesce_map/checks/05_map_pk_fk.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_stg__batch_coalesce_map/checks/05_map_pk_fk.sql"
+    },
+    {
+      "asset": "business_sql/oil_stg__batch_control/apply.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_stg__batch_control/apply.sql"
+    },
+    {
+      "asset": "business_sql/oil_stg__batch_control/checks/05_batch_pk.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_stg__batch_control/checks/05_batch_pk.sql"
+    },
+    {
+      "asset": "business_sql/oil_stg__event_log/apply.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_stg__event_log/apply.sql"
+    },
+    {
+      "asset": "business_sql/oil_stg__event_log/checks/02_raw_coordinates.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_stg__event_log/checks/02_raw_coordinates.sql"
+    },
+    {
+      "asset": "business_sql/oil_stg__event_log/checks/03_refresh_position_conflicts.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_stg__event_log/checks/03_refresh_position_conflicts.sql"
+    },
+    {
+      "asset": "business_sql/oil_stg__event_log/checks/04_refresh_delta_coverage.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_stg__event_log/checks/04_refresh_delta_coverage.sql"
+    },
+    {
+      "asset": "business_sql/oil_stg__event_log/checks/05_batch_fk.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_stg__event_log/checks/05_batch_fk.sql"
+    },
+    {
+      "asset": "business_sql/oil_stg__kafka_checkpoint/apply.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_stg__kafka_checkpoint/apply.sql"
+    },
+    {
+      "asset": "business_sql/oil_stg__v_event_parsed/apply.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_stg__v_event_parsed/apply.sql"
+    },
+    {
+      "asset": "business_sql/oil_stg__v_event_parsed/checks/02_parsed_current_stage_business.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_stg__v_event_parsed/checks/02_parsed_current_stage_business.sql"
+    },
+    {
+      "asset": "business_sql/oil_stg__v_event_parsed/checks/03_parsed_positions_and_conflicts.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_stg__v_event_parsed/checks/03_parsed_positions_and_conflicts.sql"
+    },
+    {
+      "asset": "business_sql/oil_stg__v_event_parsed/checks/04_parsed_envelope_validation.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_stg__v_event_parsed/checks/04_parsed_envelope_validation.sql"
+    },
+    {
+      "asset": "business_sql/oil_stg__v_event_parsed/checks/05_parsed_field_well_validation.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_stg__v_event_parsed/checks/05_parsed_field_well_validation.sql"
+    },
+    {
+      "asset": "business_sql/oil_stg__v_event_parsed/checks/06_parsed_production_validation.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_stg__v_event_parsed/checks/06_parsed_production_validation.sql"
+    },
+    {
+      "asset": "business_sql/oil_stg__v_event_parsed/checks/07_parsed_downtime_validation.sql",
+      "mode": "logic",
+      "path": "business_sql/oil_stg__v_event_parsed/checks/07_parsed_downtime_validation.sql"
+    },
+    {
+      "asset": "dag/oil_production_spark_candidate.py",
+      "mode": "logic",
+      "path": "dag/oil_production_spark_candidate.py"
+    },
+    {
+      "asset": "DIFF.md",
+      "mode": "all",
+      "path": "DIFF.md"
+    }
+  ],
+  "files": {
+    "DIFF.md": "d7ed1b377636ce6eaefaf83dd425a1a09e4696251869675bd7056ce57f4f2bfe",
+    "all_ddl.sql": "c4e78ea5fda6e0e806798f8a079546c1856ff0928c0913a003f8a5e336a1291a",
+    "business_sql/oil_dds__event/apply.sql": "8f0b6a2ae87e5568e4864ea765bb803f11a4472ba9f8e704795df280a9e05fbd",
+    "business_sql/oil_dds__event/checks/02_event_initial_retained.sql": "c7c205e1aee39be969e32ccb160ad69c7c1af8e2ce4773e29c511cb385ca8ad6",
+    "business_sql/oil_dds__event/checks/03_event_stage_business_coverage.sql": "3cfc984232a32ec9fd9e68d248135af6073ced8f3ff8fb8ee2651d1324168578",
+    "business_sql/oil_dds__event/checks/04_event_id_and_version_conflicts.sql": "a5c6b5d30ce0f747d64447507828740048a672e8d4f49bc028878ae76b79a55a",
+    "business_sql/oil_dds__event/checks/05_batch_fk.sql": "5f0a84bc0fde11b38c869010e8ec37f43db561fb3757d9168e7c35df168fe155",
+    "business_sql/oil_dds__event/checks/05_event_new_rows_audit_and_coverage.sql": "dd90f66331ca70ca9b1e615d2c35d7cf5acff82b17874e811b78ed81cb7617eb",
+    "business_sql/oil_dds__event/checks/06_event_document_consistency.sql": "d08eb5f8f42123376df6938a3a61dc37a800b48e574e0d300e9dc731dd1c3228",
+    "business_sql/oil_dds__hub_field/apply.sql": "8caeda0564f08c30bfa66857f0c2af3c85ce0bf947a3a5c69f3208c54e408c73",
+    "business_sql/oil_dds__hub_field/checks/02_hub_field_initial_retained.sql": "5485032da3c851d0a1d7d44e0264e9a2f362b58575ad7485e14b95155729e017",
+    "business_sql/oil_dds__hub_field/checks/03_hub_field_business.sql": "56672e7504ceca78819344e8eb6359622bd4f0c59db5ce93c3818c1709d6e525",
+    "business_sql/oil_dds__hub_field/checks/04_hub_field_unique.sql": "48e5a0b5b2fc8982cbcfe56a5031925e90c2582d4c32d2c1f4de5e7176fad7de",
+    "business_sql/oil_dds__hub_production_day/apply.sql": "642e184ef89b9ba351b88aae03b02c96f795bcb2498a6dcdd164535881de312a",
+    "business_sql/oil_dds__hub_production_day/checks/02_hub_production_initial_retained.sql": "aabaf8f263dc74687832448bcc3e7fc06a7d05dc612ee44c774e82361f902239",
+    "business_sql/oil_dds__hub_production_day/checks/03_hub_production_business.sql": "2be0a20cc076cf54282ef7c21c7d876b43657f6f35552f014e54ee52be41b414",
+    "business_sql/oil_dds__hub_production_day/checks/04_hub_production_unique.sql": "854050095ac13819567a1f6cf21c818954d321d68b6f54828c973fa20a06eb27",
+    "business_sql/oil_dds__hub_well/apply.sql": "afed1ad7f4daeb006c86cc2b1861fc1c9e43e1edcb55121ed6a74a56a75b36c9",
+    "business_sql/oil_dds__hub_well/checks/02_hub_well_initial_retained.sql": "d882cf3b7c99316ba730b2a4bb5503f2d3bcd63505f5dc04cd9518a76da39770",
+    "business_sql/oil_dds__hub_well/checks/03_hub_well_business.sql": "9759ea33b2d2167287ba583ff8e3d6fc218c884b0e328e8e9430586bac5b8eaf",
+    "business_sql/oil_dds__hub_well/checks/04_hub_well_unique.sql": "6f653dd34ac2eeac6b550f3adffb2310189106b299b30e6a36ca33695f693c08",
+    "business_sql/oil_dds__link_production_day_well/apply.sql": "0d85f7b6e897c24f620b4b4831336e906697dc38515c8b9888e445339f02d035",
+    "business_sql/oil_dds__link_production_day_well/checks/02_link_production_well_initial_retained.sql": "2fd36aef169e519368e7eca88c02405b8eadcaa448f337d095677a39aaf36eed",
+    "business_sql/oil_dds__link_production_day_well/checks/03_link_production_well_business.sql": "5cb8ba7fdb6da8bb3d73ff52a0f0027ee5e124b36253ff8e563e5a6fb1c6fb6b",
+    "business_sql/oil_dds__link_production_day_well/checks/04_link_production_well_keys_and_references.sql": "881337e837df035953f9a531c5a4504f1785248b029e318134a8ae9da6fe501e",
+    "business_sql/oil_dds__link_well_field/apply.sql": "5515977b9f2d7323a838fe32131b4f140e992d34050874975bf6e8c62e292959",
+    "business_sql/oil_dds__link_well_field/checks/02_link_well_field_initial_retained.sql": "1914063b726ba5bbfa8bff620698959db96b16ffea742a4e71699f27145b4571",
+    "business_sql/oil_dds__link_well_field/checks/03_link_well_field_business.sql": "4e30a20fe46cb995e360779991f9fe88bb047a80ef32d4728ee21f3fbf723718",
+    "business_sql/oil_dds__link_well_field/checks/04_link_well_field_keys_and_references.sql": "5dd666615580d6a346d59835d24ba10871c98db6784afaef0470d1db3b3ae8e1",
+    "business_sql/oil_dds__sat_daily_production/apply.sql": "9cf46a1d6bab883e8d3e81ad9cce88041d5dca2345e52a8fad1167cff8ae12b8",
+    "business_sql/oil_dds__sat_daily_production/checks/02_sat_production_initial_retained.sql": "7803b8d84079e55d018be1911d69882170bc6340c19dd1ab16ba05acabad5235",
+    "business_sql/oil_dds__sat_daily_production/checks/03_sat_production_business.sql": "61cfebadac294af38b8d1b50c473d4f598b42225667c487dccada7bbd9f86673",
+    "business_sql/oil_dds__sat_daily_production/checks/04_sat_production_keys_and_references.sql": "a92ec58e0c8d0a3eefbb6952a78e78c5d73c490bb3594816169a1b4dea3b67e5",
+    "business_sql/oil_dds__sat_field/apply.sql": "7c780bcaecbdd1033b8cf84196c79ce4d61ff9dfb97874fbdb0469e56ab3cea2",
+    "business_sql/oil_dds__sat_field/checks/02_sat_field_initial_retained.sql": "c6deca70e0bfdae1a6fac7b6d24959453b87131cd0dc2c38c0de0698dcb47fab",
+    "business_sql/oil_dds__sat_field/checks/03_sat_field_business.sql": "fd89d5457e59f73fa0982e152942a3865009fa530b1889749033c0487f5fc902",
+    "business_sql/oil_dds__sat_field/checks/04_sat_field_keys_and_references.sql": "9bc59629eb008ac4fd40bff0c9df9b0657c9d850c7beb0e21c2315f30eba2149",
+    "business_sql/oil_dds__sat_well/apply.sql": "6b0bb962168fbc4a58441f8be58582fc29b2b523395280202143715e0045d824",
+    "business_sql/oil_dds__sat_well/checks/02_sat_well_initial_retained.sql": "852d427124e3e050ef59e1cb8feeaac186e4b37c916234184ac06cee8df0d391",
+    "business_sql/oil_dds__sat_well/checks/03_sat_well_business.sql": "94c157ddd184c6afccf09f84f424107c311ec58ad0679dc81b4f1e099079c000",
+    "business_sql/oil_dds__sat_well/checks/04_sat_well_keys_and_references.sql": "824d4725c80c6e68db5879503cdb0e94400313b8e43ec821e4a753201858ceea",
+    "business_sql/oil_mart__agg_field_day/apply.sql": "e20b740bc21402d3ec7aeb3bd3273ce5b3bffa20d7aba8c77e5a113f2a08a7df",
+    "business_sql/oil_mart__agg_field_day/checks/01_initial_full_equality.sql": "eed7ddaecbb40b6167b819997753f8685793af8efa03d4ee64657027af82179c",
+    "business_sql/oil_mart__agg_field_day/checks/02_aggregate_components.sql": "e5baaeaffc43b96c5b46a7f5711b2582e4c0f683312e551d23248d97ffdf3dc3",
+    "business_sql/oil_mart__agg_field_day/checks/03_ratio_exact_rounding.sql": "c779dfd52026bed53c718d38b45dacecbbdd38fd74867e9e98751a20775b953c",
+    "business_sql/oil_mart__dim_field/apply.sql": "84e4d66f174a5ed5130baeba598c5a33f7fdfc5e6a4ad0454b9394e967f3f129",
+    "business_sql/oil_mart__dim_field/checks/01_initial_full_equality.sql": "0400affdc375ac8d340b861797c4e7beab3061073d5fa902d417379b58e4a7a0",
+    "business_sql/oil_mart__dim_field/checks/02_ambiguous_effective_dates.sql": "ee5e1d05e28a4ad8a521d89cce76dcbc3ca39c74ab0a2564cf76398ed8d6f5cc",
+    "business_sql/oil_mart__dim_field/checks/03_scd2_rebuild_equality.sql": "0a4f5cd3129fc4f04d94d808f6b60001f2a5224973e49cf138c7625fed4c3d80",
+    "business_sql/oil_mart__dim_well/apply.sql": "d9e94b4a8dc6a157567f39ae27f13609b208f4f4d48ef8493082cdd23098c2e2",
+    "business_sql/oil_mart__dim_well/checks/01_initial_full_equality.sql": "1f6fca531f58e87d6b7e9268d31a5516547f623650bef317f3f837b6c9565bb7",
+    "business_sql/oil_mart__dim_well/checks/02_ambiguous_effective_dates.sql": "ac950a68ac75bd4b2219a76c713306d8e23d748169ad9d996c9c8eca6f6fe2e8",
+    "business_sql/oil_mart__dim_well/checks/03_scd2_rebuild_equality.sql": "68338af76682461b92d33bbdb42b6e30ba682bc791de048989648ee204cbd7ae",
+    "business_sql/oil_mart__fact_well_day/apply.sql": "5602c49dab16900e712d623d86ca7df30e28a57f35849ca66a103994c3595912",
+    "business_sql/oil_mart__fact_well_day/checks/01_initial_full_equality.sql": "f42aaf907e374f811f38d8d8f24eb9e6232134f6ad8337a78b0894db36739670",
+    "business_sql/oil_mart__fact_well_day/checks/02_production_dimension_cardinality.sql": "ec52446a390d68af58c1d002a47f9d27d686bc54bd62bb704d12b796d8ef8d4f",
+    "business_sql/oil_mart__fact_well_day/checks/03_well_status_consistency.sql": "699aeea76c242e08591a61c20bea2b172425edab6936c601411afdf4717e918e",
+    "business_sql/oil_mart__fact_well_day/checks/04_fact_rebuild_equality.sql": "afa9f366aafbdff82329309d7c858ebc09c627d852a53f19f4a68e2f2f18cd26",
+    "business_sql/oil_mart__v_field_production/apply.sql": "0f1014631ac95e7e16ff91c714e3b288d6fa464abf687cab3cafa9723f24c569",
+    "business_sql/oil_mart__v_field_production/checks/01_initial_full_equality.sql": "bf148aa889c0558424524563d654c62bae2313369dd5c0bec3249810984a753e",
+    "business_sql/oil_mart__v_field_production/checks/02_serving_rebuild_equality.sql": "8d6bc123f939c7116651bee32b85055b67fb248e8ddf955891ef59a5838715bc",
+    "business_sql/oil_stg__batch_coalesce_event_map/apply.sql": "3a2170ea2cff70739e616a9d8e64e5f89e1ec7b2132672d0ab46479b1ac9bc6d",
+    "business_sql/oil_stg__batch_coalesce_event_map/checks/05_event_map_pk_fk.sql": "37faabf1dbedcd81ac247292f58cf096967873812c49a61b79f64e865eab6a95",
+    "business_sql/oil_stg__batch_coalesce_map/apply.sql": "e9d46cdc114703da5afb98b38709b783deaf64051b9f029a288a2a576ca2d2a6",
+    "business_sql/oil_stg__batch_coalesce_map/checks/05_map_pk_fk.sql": "30a55ff3ec8c2f8256c70cf7b4adba87999bfcd34562dec128bdda53ec1c00e6",
+    "business_sql/oil_stg__batch_control/apply.sql": "c1d88e00eb37a58fcdc30283f4223a16d29e009c5f37d7dfe73ce6d723a9d10e",
+    "business_sql/oil_stg__batch_control/checks/05_batch_pk.sql": "38c983223c55f9785eab95af2f19883f56e5979d714561e1c7bd6b90c21699ae",
+    "business_sql/oil_stg__event_log/apply.sql": "36a94bb240deb6bdb9efbd644d11d017daeb00dc32adde6591a5e9f2a4bbaa1c",
+    "business_sql/oil_stg__event_log/checks/02_raw_coordinates.sql": "c24ca4a107f66b1accbb917e8b927e7f5060e6aab0c7c6d06d94bf5d33af650c",
+    "business_sql/oil_stg__event_log/checks/03_refresh_position_conflicts.sql": "d88aa45479d5cfc0d6c8a4e917cd21ce391adf3f586b604381dc6ba307b3b996",
+    "business_sql/oil_stg__event_log/checks/04_refresh_delta_coverage.sql": "f893e575d4f331d4112c9bfe282c5bb262244c5bc911050f26f66a001500d669",
+    "business_sql/oil_stg__event_log/checks/05_batch_fk.sql": "a89bcd8c0590e6b61a81ad162f36f55607be5fe3d179d0e7c695040851f0bbba",
+    "business_sql/oil_stg__kafka_checkpoint/apply.sql": "216b0c424890a4417b187ecb0e5dfe7ff3231bafbc739a3bcf40d4b5c4a212f9",
+    "business_sql/oil_stg__v_event_parsed/apply.sql": "5c3740e63381768c0652edd5b514aa62b4f8873bfdb75fd801a848789e5a371c",
+    "business_sql/oil_stg__v_event_parsed/checks/02_parsed_current_stage_business.sql": "000dd400c0e737a2709758a5c0487d42abea1841db3cb6cc75a77968f75ddf76",
+    "business_sql/oil_stg__v_event_parsed/checks/03_parsed_positions_and_conflicts.sql": "51f7681257e5fa61ba0e8443a0f8605a80564d1cb84226a8a12f3db3af1e46b4",
+    "business_sql/oil_stg__v_event_parsed/checks/04_parsed_envelope_validation.sql": "2a866e844c100f8acea1435be35ee95ab1e49e8bcf3524be6e5bff98d5da941a",
+    "business_sql/oil_stg__v_event_parsed/checks/05_parsed_field_well_validation.sql": "c4f79b1ad90e0ec68966b83854c3fe039a21aadebf3532c275c2ea987823625b",
+    "business_sql/oil_stg__v_event_parsed/checks/06_parsed_production_validation.sql": "90529024dc22b40b8b03d7b6268e412c79580ad5850be3b75d8603c2e227f796",
+    "business_sql/oil_stg__v_event_parsed/checks/07_parsed_downtime_validation.sql": "d4642f0b97266342de10f2006169058ec7ee853abbb751dd9f1f6730839843b0",
+    "dag/oil_production_spark_candidate.py": "1cde59335dc80a7c4883b8e1c50dc415d470876cea29ffa70ef3acf0fe688f35",
+    "ddl/oil_dds__event.sql": "1cb42c1483b679a16f665d2923a43809e09a4afd9285b927e31cdb06c70e942f",
+    "ddl/oil_dds__hub_field.sql": "068c470db9182dc41c6d4a0913a5205b9739806260dfc0d7aecfbf38d46fbe5e",
+    "ddl/oil_dds__hub_production_day.sql": "1aa7bc9aabff6463ebfec2142aafe1d53e159e0fe8418a03cc3b8908f439f39e",
+    "ddl/oil_dds__hub_well.sql": "437977c51c9e006318a1659a321969028be2ec3ade47b5235b09282c74216572",
+    "ddl/oil_dds__link_production_day_well.sql": "5fa315983e94c76e9b863c92d666dea41d55e04cdab5f5ce3e8eb26a1724fe9c",
+    "ddl/oil_dds__link_well_field.sql": "3d39783b259e5fafdc3227dffe6748b7fc12a79c93cf98debf34f84118e43ef9",
+    "ddl/oil_dds__sat_daily_production.sql": "6be35ca36a55d7a5e68bae026f7d8144c3e28fccd790af69336b54d95b7c49f8",
+    "ddl/oil_dds__sat_field.sql": "2ef50077318e69dfa4c15442b7ad38e779dde864dc578e4f7841d599884d5fd6",
+    "ddl/oil_dds__sat_well.sql": "35863d3ee642ca48bf95cc51aa5ae7e2b073cf331e6fb345997fa73f305cfce0",
+    "ddl/oil_mart__agg_field_day.sql": "0c2fd097b623dccbf00e20bdc238039bc2352090010a758ece1ab144dafe288b",
+    "ddl/oil_mart__dim_field.sql": "0f0c6277cd2b58775c7d91466260f768bb05461d28e0102511c1995186b1b0bd",
+    "ddl/oil_mart__dim_well.sql": "3f5c92a5177db896b68f7b847e27a4172af40ce1580397ae1e768c4aa2169fb7",
+    "ddl/oil_mart__fact_well_day.sql": "52b17a2943b6e435c08fca3fb8806cb82b50e8b50c0956a622ace25e89c015c2",
+    "ddl/oil_mart__v_field_production.sql": "1c6790373fbecba426065a488001d7e6ac9160eb079661e2ed34f77ad3ca49c7",
+    "ddl/oil_stg__batch_coalesce_event_map.sql": "2797802a9fbe762c9520492ea3b5b8457692db56457d413da586d857461a2441",
+    "ddl/oil_stg__batch_coalesce_map.sql": "054a65ad91cf9fdf7da36935d67bb8253fcddc9bf8716a6cc5482c4e48685663",
+    "ddl/oil_stg__batch_control.sql": "e87f717a583e5e5a6f5a8d2eb48ae671f6991a01c93be036611a16c323ef6d4a",
+    "ddl/oil_stg__event_log.sql": "c6e9a3248381e5da506e94107b1641828500b4d16dbe6573441d26396fc92035",
+    "ddl/oil_stg__kafka_checkpoint.sql": "196833b0f37971581178d78c43d8f5fa7e33e76ba88cee3c961d4b0738b72124",
+    "ddl/oil_stg__v_event_parsed.sql": "e8fe5cc869a43b36adb04d1ebd1b992c56704f529e5540e3f384f90a084415b6",
+    "raw_ingestion_ddl.sql": "d0b66542a0cc78a2268c6d27f29f1f4558683a9314e9d50cd66050ad86b7235f",
+    "runtime/oil_direct_source.py": "5ee573877d9fa155e665859dfc7a7d0278daca4065a705cae7a3106575a604e3",
+    "runtime/oil_dlh_jobs.py": "82a9cfa4b20d3b09c697f359a3d03fe256642d181298e4afc95b97466b339c6e",
+    "runtime/oil_gp_snapshot.py": "fe08854a04361abda562708d29e920e6c8e3633bab56455e77d46e357113aeff",
+    "runtime/oil_layered_cedrus.py": "a72fd3b2f08e9c7d34b3edb9a25a8401289db84050dcdb994d14aaec8f2843d4",
+    "runtime/oil_layered_plan.py": "b9befb7da759a48b42738f9e6931c64c19f5307b3da00a16a29b00761f8d55b6",
+    "runtime/oil_layered_runtime.py": "7c421a516b1db957bbe14655f966eafc0e444a408849ef0b61f2326e3eed46f4",
+    "runtime/oil_layered_spark.py": "b469cc39e8e2199c03107921dc155236828e8ad8122dc15ff3355cb2a9c63daa",
+    "source/dags/oil_gp_release/oil_gp_release.py": "8083e19245043ee6348ae25e7ce6ec2862f8771200502187923452467fb4524e",
+    "source/ddl/tables/oil_dds/event/event.sql": "121b19e1ea44484c1ac1f5c816ca893723403d75f2741300696119085ac9fcee",
+    "source/ddl/tables/oil_dds/hub_field/hub_field.sql": "f9b192b73b5e591d0b6de0a15eef3f896056333400e1c45c0ef16d9c54043d1a",
+    "source/ddl/tables/oil_dds/hub_production_day/hub_production_day.sql": "6b76452d7162cc3d8365d271317e9f6913065fff69976ac9e1ad4790cfbba8ae",
+    "source/ddl/tables/oil_dds/hub_well/hub_well.sql": "24339a1aa7ea9ba85c3f64258119fa7d94def38b945470f91c9615952189041c",
+    "source/ddl/tables/oil_dds/link_production_day_well/link_production_day_well.sql": "4a9f8c015a0e10724119ecd5270660cfe007a7c557b7ba4a0377831c91aa9b1c",
+    "source/ddl/tables/oil_dds/link_well_field/link_well_field.sql": "f4e937f5adb8a8612325ee045cda5bc0698224a2c196cd339807941c64ce43c5",
+    "source/ddl/tables/oil_dds/sat_daily_production/sat_daily_production.sql": "cfae0517022bd81b844a90d3100c2f7d9a5874a04947acefdc8eff5fd7a37ff5",
+    "source/ddl/tables/oil_dds/sat_field/sat_field.sql": "b6febcef0d38bf776211612fda4d6b1915e45d9c04031ba2120c12fa0e5cc6ac",
+    "source/ddl/tables/oil_dds/sat_well/sat_well.sql": "4f7eaf1a94fc2ceb274f934092c19e62ef66f56e5033074baddaf5c7373bf41b",
+    "source/ddl/tables/oil_mart/agg_field_day/agg_field_day.sql": "ea8d400aac98dd2545616c6ea34024a3fd5afc8e4ba9d04af4d7ddc6ec50e5ec",
+    "source/ddl/tables/oil_mart/dim_field/dim_field.sql": "515fb6cbb73500f56a40f0cfc956c004041a07cabdbb3e224a8ce47216042fb3",
+    "source/ddl/tables/oil_mart/dim_well/dim_well.sql": "5b4c61214685ee5b7cc0f99bca92502dda39bd5ebf3f3272df8220fdaec23965",
+    "source/ddl/tables/oil_mart/fact_well_day/fact_well_day.sql": "c6b8e76db866c9aea7c83c4f2549b2ad5d516aafd4d7539bc7b3b362a35140b6",
+    "source/ddl/tables/oil_stg/batch_coalesce_event_map/batch_coalesce_event_map.sql": "84e005de0c112afa9f8a4a2fe0569a7a7b601143083556258d0b390d606ebc95",
+    "source/ddl/tables/oil_stg/batch_coalesce_map/batch_coalesce_map.sql": "9ab5c8ef2a56e0b8f7519dca9591b5ee33ea59618d7a43b5e9f58573c35b73c7",
+    "source/ddl/tables/oil_stg/batch_control/batch_control.sql": "25cecc87fb36cf3e8e100f50d541d187103d622b7b61038c221452b2fcb3817b",
+    "source/ddl/tables/oil_stg/event_log/event_log.sql": "8496d71deed94b00e445dd0d9334754dc8cff4b47b472de33a0da81b2ae65c9c",
+    "source/ddl/tables/oil_stg/kafka_checkpoint/kafka_checkpoint.sql": "341860f0b0fb9e7fac07a00c28917a9c2d1d05a93a0234013301934cd07db774",
+    "source/functions/oil_dds/apply_batch/apply_batch.sql": "742ea95f811a5bebf2deac88d4197d83b946aecc6e63d92efe9b7735b248c7b7",
+    "source/functions/oil_mart/refresh_downtime/refresh_downtime.sql": "c411c05c49faccfc4292750e2bee806883e627979c8c5f8045cc6f26b7662992",
+    "source/functions/oil_mart/refresh_production/refresh_production.sql": "ac388b807d1bb50818ce3ba63483ef67abca5310f8166668422bbba6a2da793f",
+    "source/functions/oil_stg/coalesce_ready_batches/coalesce_ready_batches.sql": "9fa3a5f687651719b27fd15082bf67b9f364b1cbf9bd3656ff3392311f134ba8",
+    "source/views/oil_mart/v_field_production/v_field_production.sql": "3f1a3d5abc2b45addd4df7b97d8198977a647c706afc8cbe22720a66179253b5",
+    "source/views/oil_stg/v_event_parsed/v_event_parsed.sql": "489f968d786bfb62089532e08028da778aead06e5a0c42a9aa8fa0c28a38b165"
+  },
+  "source_sha256": {
+    "source/dags/oil_gp_release/oil_gp_release.py": "8083e19245043ee6348ae25e7ce6ec2862f8771200502187923452467fb4524e",
+    "source/ddl/tables/oil_dds/event/event.sql": "121b19e1ea44484c1ac1f5c816ca893723403d75f2741300696119085ac9fcee",
+    "source/ddl/tables/oil_dds/hub_field/hub_field.sql": "f9b192b73b5e591d0b6de0a15eef3f896056333400e1c45c0ef16d9c54043d1a",
+    "source/ddl/tables/oil_dds/hub_production_day/hub_production_day.sql": "6b76452d7162cc3d8365d271317e9f6913065fff69976ac9e1ad4790cfbba8ae",
+    "source/ddl/tables/oil_dds/hub_well/hub_well.sql": "24339a1aa7ea9ba85c3f64258119fa7d94def38b945470f91c9615952189041c",
+    "source/ddl/tables/oil_dds/link_production_day_well/link_production_day_well.sql": "4a9f8c015a0e10724119ecd5270660cfe007a7c557b7ba4a0377831c91aa9b1c",
+    "source/ddl/tables/oil_dds/link_well_field/link_well_field.sql": "f4e937f5adb8a8612325ee045cda5bc0698224a2c196cd339807941c64ce43c5",
+    "source/ddl/tables/oil_dds/sat_daily_production/sat_daily_production.sql": "cfae0517022bd81b844a90d3100c2f7d9a5874a04947acefdc8eff5fd7a37ff5",
+    "source/ddl/tables/oil_dds/sat_field/sat_field.sql": "b6febcef0d38bf776211612fda4d6b1915e45d9c04031ba2120c12fa0e5cc6ac",
+    "source/ddl/tables/oil_dds/sat_well/sat_well.sql": "4f7eaf1a94fc2ceb274f934092c19e62ef66f56e5033074baddaf5c7373bf41b",
+    "source/ddl/tables/oil_mart/agg_field_day/agg_field_day.sql": "ea8d400aac98dd2545616c6ea34024a3fd5afc8e4ba9d04af4d7ddc6ec50e5ec",
+    "source/ddl/tables/oil_mart/dim_field/dim_field.sql": "515fb6cbb73500f56a40f0cfc956c004041a07cabdbb3e224a8ce47216042fb3",
+    "source/ddl/tables/oil_mart/dim_well/dim_well.sql": "5b4c61214685ee5b7cc0f99bca92502dda39bd5ebf3f3272df8220fdaec23965",
+    "source/ddl/tables/oil_mart/fact_well_day/fact_well_day.sql": "c6b8e76db866c9aea7c83c4f2549b2ad5d516aafd4d7539bc7b3b362a35140b6",
+    "source/ddl/tables/oil_stg/batch_coalesce_event_map/batch_coalesce_event_map.sql": "84e005de0c112afa9f8a4a2fe0569a7a7b601143083556258d0b390d606ebc95",
+    "source/ddl/tables/oil_stg/batch_coalesce_map/batch_coalesce_map.sql": "9ab5c8ef2a56e0b8f7519dca9591b5ee33ea59618d7a43b5e9f58573c35b73c7",
+    "source/ddl/tables/oil_stg/batch_control/batch_control.sql": "25cecc87fb36cf3e8e100f50d541d187103d622b7b61038c221452b2fcb3817b",
+    "source/ddl/tables/oil_stg/event_log/event_log.sql": "8496d71deed94b00e445dd0d9334754dc8cff4b47b472de33a0da81b2ae65c9c",
+    "source/ddl/tables/oil_stg/kafka_checkpoint/kafka_checkpoint.sql": "341860f0b0fb9e7fac07a00c28917a9c2d1d05a93a0234013301934cd07db774",
+    "source/functions/oil_dds/apply_batch/apply_batch.sql": "742ea95f811a5bebf2deac88d4197d83b946aecc6e63d92efe9b7735b248c7b7",
+    "source/functions/oil_mart/refresh_downtime/refresh_downtime.sql": "c411c05c49faccfc4292750e2bee806883e627979c8c5f8045cc6f26b7662992",
+    "source/functions/oil_mart/refresh_production/refresh_production.sql": "ac388b807d1bb50818ce3ba63483ef67abca5310f8166668422bbba6a2da793f",
+    "source/functions/oil_stg/coalesce_ready_batches/coalesce_ready_batches.sql": "9fa3a5f687651719b27fd15082bf67b9f364b1cbf9bd3656ff3392311f134ba8",
+    "source/views/oil_mart/v_field_production/v_field_production.sql": "3f1a3d5abc2b45addd4df7b97d8198977a647c706afc8cbe22720a66179253b5",
+    "source/views/oil_stg/v_event_parsed/v_event_parsed.sql": "489f968d786bfb62089532e08028da778aead06e5a0c42a9aa8fa0c28a38b165"
+  },
+  "version": "oil-production-1.1"
+}

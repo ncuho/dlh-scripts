@@ -17,6 +17,7 @@ REPO = Path(__file__).resolve().parents[2]
 BRIDGE = Path(os.environ.get('PLATFORM_BRIDGE_ROOT', str(REPO.parents[1]/'platform-bridge'))).resolve()
 CONNECTOR = 'manual-oil-production-a'
 DAGS = ['oil_layered_migration', 'oil_dlh_catchup', 'oil_dlh_release']
+OPTIONAL_DAGS = ['oil_production_spark_candidate']
 TABLES = {
     'bronze': ['__raw_events', 'batch_control', 'batch_coalesce_map', 'batch_coalesce_event_map', 'event_log', 'kafka_checkpoint', 'v_event_parsed'],
     'silver': ['event', 'hub_field', 'hub_production_day', 'hub_well', 'link_production_day_well', 'link_well_field', 'sat_daily_production', 'sat_field', 'sat_well'],
@@ -127,10 +128,14 @@ class Backend:
 
     def airflow(self):
         """Read paused/import states and all active runs, including an old queued run."""
-        return self.wave.air('names='+repr(DAGS)+'''
+        return self.wave.air('names='+repr(DAGS+OPTIONAL_DAGS)+'\noptional='+repr(OPTIONAL_DAGS)+'''
 out={}
 for name in ['oil_gp_release']+names:
- d=call('/api/v2/dags/'+name);active=[];offset=0
+ try:d=call('/api/v2/dags/'+name)
+ except urllib.error.HTTPError as e:
+  if e.code==404 and name in optional:continue
+  raise
+ active=[];offset=0
  while True:
   page=call('/api/v2/dags/'+name+'/dagRuns?limit=100&offset='+str(offset))
   rows=page['dag_runs'];active += [r['dag_run_id'] for r in rows if r['state'] in ['running','queued']]
@@ -193,7 +198,7 @@ print(json.dumps(out))''')
 
     def quiesce(self, wait_seconds):
         """Pause only target scheduling, gracefully stop the producer, and await current jobs."""
-        self.wave.air('names='+repr(DAGS)+'''
+        self.wave.air('names='+repr(DAGS+OPTIONAL_DAGS)+'''
 out=[]
 for name in names+['oil_source_snapshot']:
  try:x=call('/api/v2/dags/'+name,'PATCH',{'is_paused':True})
@@ -215,7 +220,7 @@ print(json.dumps({'state_exists':p.exists(),'state_sha256':hashlib.sha256(p.read
         deadline = time.monotonic()+wait_seconds
         while True:
             dags = self.airflow()
-            active = {name:dags[name]['active'] for name in DAGS if dags[name]['active']}
+            active = {name:dags[name]['active'] for name in DAGS+OPTIONAL_DAGS if name in dags and dags[name]['active']}
             if not active:
                 break
             if time.monotonic() >= deadline:
@@ -230,7 +235,7 @@ print(json.dumps({'state_exists':p.exists(),'state_sha256':hashlib.sha256(p.read
     def guard_idle(self):
         """Reject a new writer started after the reset paused scheduling."""
         states=self.airflow()
-        if any(not states[n]['paused'] or states[n]['active'] for n in DAGS):
+        if any(not states[n]['paused'] or states[n]['active'] for n in DAGS+OPTIONAL_DAGS if n in states):
             raise RuntimeError('Target writer resumed during cleanup')
 
     def transport(self, plan):

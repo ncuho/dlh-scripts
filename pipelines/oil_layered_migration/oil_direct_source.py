@@ -1,7 +1,7 @@
 """Keep one GP snapshot while copying typed rows directly and reconciling every object.
 
-No intermediary Iceberg table is created. Initial copy uses the reviewed pure
-projections; Spark runs the six calculations. Source and target row signatures
+No intermediary Iceberg table is created. Initial copy uses reviewed pure
+projections for all twenty objects; Spark is used only by the later DLH processing DAG. Source and target row signatures
 preserve NULL, JSON text, decimal scale and UTC microseconds. A replayable target
 checksum query records the expected source signature without retaining source rows.
 """

@@ -1,8 +1,13 @@
--- Учитывает состояния исходных партий и завершённость применения. Здесь сохраняется аудит GP на C0, а не checkpoint нового sink.
-SELECT batch_id,
-       created_at,
-       error_text,
-       source_manifest,
-       source_name,
-       status
-FROM {{initial:oil_stg__batch_control}};
+-- Сохраняет исходный аудит и создаёт родителей новых доставок: отрицательный ID однозначно задаётся partition/offset.
+-- AS IS выдавал batch_id через sequence GP; TO BE сохраняет его для INITIAL и выделяет отдельный namespace для raw-хвоста.
+WITH incoming AS (
+ SELECT d.*, -(CAST(d.kafka_partition AS BIGINT)*1000000000000000+d.kafka_offset+1) AS target_batch_id
+ FROM {{delta}} d WHERE NOT EXISTS (
+  SELECT 1 FROM {{initial:oil_stg__event_log}} i WHERE i.topic=d.topic
+   AND i.kafka_partition=d.kafka_partition AND i.kafka_offset=d.kafka_offset)
+)
+SELECT batch_id,created_at,error_text,source_manifest,source_name,status FROM {{initial:oil_stg__batch_control}}
+UNION ALL
+SELECT target_batch_id,min(received_at),CAST(NULL AS varchar),
+ 'Lakehouse delivery; original sink batch_id retained in bronze.__raw_events',
+ 'kafka:oil.events.v1','APPLIED' FROM incoming GROUP BY target_batch_id;

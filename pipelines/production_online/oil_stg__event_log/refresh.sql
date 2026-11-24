@@ -11,7 +11,7 @@ WITH r AS
      UNION ALL SELECT topic,
                       kafka_partition,
                       kafka_offset,
-                      batch_id,
+                      -(CAST(kafka_partition AS BIGINT)*1000000000000000+kafka_offset+1) AS batch_id,
                       received_at,
                       event_json,
                       1 AS origin

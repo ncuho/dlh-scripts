@@ -1,6 +1,3 @@
--- Хранит следующий принятый offset каждой исходной Kafka-партиции. Здесь сохраняется аудит GP на C0, а не checkpoint нового sink.
-SELECT topic,
-       kafka_partition,
-       next_offset,
-       updated_at
-FROM {{initial:oil_stg__kafka_checkpoint}};
+-- Фиксирует следующий применённый offset целевой кандидатной истории; исходный checkpoint приёма GP не копируется как граница расчёта.
+SELECT topic,kafka_partition,max(kafka_offset)+1 AS next_offset,max(received_at) AS updated_at
+FROM {{target:oil_stg__event_log}} GROUP BY topic,kafka_partition;

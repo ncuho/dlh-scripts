@@ -66,8 +66,8 @@ class Runner:
     def contract_hash(self):
         """Pin the plan, runtime and exact native SQL before any target write."""
         sources = {p.relative_to(self.sql_dir).as_posix(): p.read_text() for p in sorted(self.sql_dir.rglob('*.sql'))}
-        guard_path = Path(__file__).with_name('oil_source_snapshot.py')
-        return fingerprint({'operations': OPERATIONS, 'sql': sources, 'runtime': Path(__file__).read_text(), 'source_guard': guard_path.read_text()})
+        guard_paths = [Path(__file__).with_name(name) for name in ['oil_gp_snapshot.py','oil_direct_source.py']]
+        return fingerprint({'operations': OPERATIONS, 'sql': sources, 'runtime': Path(__file__).read_text(), 'source_guard': {p.name:p.read_text() for p in guard_paths}})
 
     def load(self):
         """Reject another run's receipt before trusting any completed operation."""
@@ -98,7 +98,7 @@ class Runner:
         return fingerprint(rows)
 
     def manifest(self):
-        """Export a consistent native GP snapshot and retain its checked Iceberg input."""
+        """Open one native source transaction for the complete direct migration."""
         value = self.source_guard.inspect(self.mode, OPERATIONS, self.client)
         if value.get('source_checks') != 'PASS' or value.get('topic') != 'oil.events.v1':
             raise ValueError('Source snapshot did not pass its contract')
@@ -114,7 +114,8 @@ class Runner:
         if pointer.exists():
             raise FileExistsError('This release is already accepted; do not overwrite it')
         state = {'run_id': self.run_id, 'mode': self.mode, 'status': 'PREPARED',
-                 'steps': {}, 'targets': {}, 'checks': [], 'contract_hash': self.contract_hash()}
+                 'steps': {}, 'targets': {}, 'checks': [], 'contract_hash': self.contract_hash(),
+                 'expected_checks': sum(c['phase'] in ('both',self.mode) for o in OPERATIONS for c in o['checks'])}
         for op in OPERATIONS:
             table = target(op['symbol'], self.mode)
             if self.count(table) != 0:
@@ -132,6 +133,8 @@ class Runner:
             p1 = {p['partition']: p['end'] for p in state['manifest']['partitions']}
             if set(p0) != set(p1) or any(p1[p] < p0[p] for p in p0):
                 raise ValueError('Invalid partition boundary')
+            if any(p<0 or p>=9000 or p1[p]>=1000000000000000 for p in p1):
+                raise ValueError('Offset outside the reserved Lakehouse batch identity range')
             state['window'] = overlap_window(p0, p1, self.overlap_offsets)
             state['overlap_offsets'] = self.overlap_offsets
             if sum(p['end'] - p['start'] for p in state['window']) == 0:
@@ -157,7 +160,7 @@ class Runner:
         return {'receipt': str(self.path), 'targets': 20}
 
     def render(self, query, dialect, state):
-        """Resolve typed sealed source input and pinned INITIAL/raw snapshots."""
+        """Resolve target, INITIAL and raw SQL; native source reads stay in their owning task."""
         def replace(match):
             """Substitute one fixed source, target or historical reference."""
             side, symbol = match.groups()
@@ -200,18 +203,22 @@ class Runner:
         if self.identity(table) != state['targets'][symbol]['identity'] or self.count(table) != 0:
             raise ValueError('Candidate changed since preflight')
         dialect = op[self.mode + '_dialect']
-        query = self.render((self.sql_dir / symbol / (self.mode + '.sql')).read_text(), dialect, state)
+        direct_copy = self.mode == 'initial' and dialect == 'trino' and hasattr(self.source_guard,'copy_into')
+        query = (self.source_guard.select_sql(op) if direct_copy else
+                 self.render((self.sql_dir / symbol / (self.mode + '.sql')).read_text(), dialect, state))
         quote = '`' if dialect == 'spark' else '"'
         fields = ', '.join(quote + c + quote for c in op['columns'])
         tag = 'oil_layered:' + fingerprint(self.run_id)[:16] + ':' + symbol
-        statement = '/* ' + tag + ' */ INSERT INTO ' + table + ' (' + fields + ') SELECT ' + fields + ' FROM (' + query + ') reviewed_projection'
+        statement = query if direct_copy else '/* ' + tag + ' */ INSERT INTO ' + table + ' (' + fields + ') SELECT ' + fields + ' FROM (' + query + ') reviewed_projection'
         state['status'] = 'BUILDING'
         state['steps'][symbol] = {'state': 'ATTEMPTING', 'dialect': dialect, 'query_hash': fingerprint(statement), 'tag': tag, 'query': statement}
         self.save(state)
         print(statement, flush=True)
         spark = None
         try:
-            if dialect == 'spark':
+            if direct_copy:
+                self.source_guard.copy_into(self,op,state,table)
+            elif dialect == 'spark':
                 spark = self.spark_factory()
                 spark.open()
                 spark.sql(statement)
@@ -240,8 +247,14 @@ class Runner:
         for check in op['checks']:
             if check['phase'] not in ('both', self.mode):
                 continue
-            query = self.render((self.sql_dir / symbol / check['path']).read_text(), 'trino', state)
-            result = self.client.sql(query)
+            template = (self.sql_dir / symbol / check['path']).read_text()
+            if '{{source:' in template and hasattr(self.source_guard,'compare'):
+                # Source reads stay in the one native transaction; receipt SQL replays its expected signature.
+                query,result = self.source_guard.compare(op,table,state['steps'][symbol]['snapshot'])
+                state['steps'][symbol]['source_signature'] = self.source_guard.signatures[symbol]
+            else:
+                query = self.render(template, 'trino', state)
+                result = self.client.sql(query)
             if len(result) != 1 or 'n' not in result[0]:
                 raise ValueError('Invalid quality check result')
             state['checks'].append({'symbol': symbol, 'name': check['name'], 'violations': result[0]['n'], 'query': query})

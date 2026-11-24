@@ -1,6 +1,27 @@
 """Use the existing authenticated Cedrus MCP without publishing service secrets."""
-import json, ssl, urllib.request, urllib.parse
+import json, re, ssl, urllib.request, urllib.parse
 from pathlib import Path
+
+
+def tool_error_message(response):
+    """Expose only engine code/query ID and known causes; never log raw SQL or credentials."""
+    payload = response.get('result', {})
+    texts = [str(item.get('text', '')) for item in payload.get('content', []) if isinstance(item, dict)]
+    error = response.get('error')
+    if isinstance(error, dict):
+        texts.append(str(error.get('message', '')))
+    text = '\n'.join(texts)
+    code = re.search(r'\bname=([A-Z][A-Z0-9_]{1,80})\b', text)
+    query = re.search(r'\bquery_id=([A-Za-z0-9_]{1,100})\b', text)
+    parts = ['MCP tool error']
+    if code:
+        parts.append('engine_code=' + code.group(1))
+    if 'license' in text.lower() and 'grace period has ended' in text.lower():
+        parts.append('Cedrus evaluation license grace period expired; restore licensed engine availability')
+    if query:
+        parts.append('query_id=' + query.group(1))
+    return '; '.join(parts)
+
 
 class MCP:
     def __init__(self, url, ca, bearer_file):
@@ -64,7 +85,7 @@ class MCP:
             else:
                 result = json.load(r)
         if result.get("error") or result.get("result", {}).get("isError"):
-            raise RuntimeError("MCP tool error")
+            raise RuntimeError(tool_error_message(result))
         return result.get("result", {})
 
     def sql(self, query):

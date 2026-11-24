@@ -180,8 +180,12 @@ class Runner:
             return 'greenplum_gp.' + source['schema'] + '.' + name
         value = re.sub(r'\{\{(source|target|initial):([^}]+)\}\}', replace, query)
         if '{{delta}}' in value:
-            windows = ['(kafka_partition={partition} AND kafka_offset>={read_start} AND kafka_offset<{end})'.format(**p) for p in state['window']]
-            delta = '(SELECT * FROM ' + RAW + (' VERSION AS OF ' if dialect == 'spark' else ' FOR VERSION AS OF ') + str(state['raw_snapshot']) + " WHERE topic='oil.events.v1' AND (" + ' OR '.join(windows) + '))'
+            if self.mode == 'initial':
+                # INITIAL has no replay window; shared conflict checks still validate its own rows.
+                delta = '(SELECT * FROM ' + target('oil_stg__event_log') + ' WHERE false)'
+            else:
+                windows = ['(kafka_partition={partition} AND kafka_offset>={read_start} AND kafka_offset<{end})'.format(**p) for p in state['window']]
+                delta = '(SELECT * FROM ' + RAW + (' VERSION AS OF ' if dialect == 'spark' else ' FOR VERSION AS OF ') + str(state['raw_snapshot']) + " WHERE topic='oil.events.v1' AND (" + ' OR '.join(windows) + '))'
             value = value.replace('{{delta}}', delta)
         stamp = state['manifest']['captured_at'].replace("'", "''")
         expression = "TO_TIMESTAMP('" + stamp + "')" if dialect == 'spark' else "CAST(FROM_ISO8601_TIMESTAMP_NANOS('" + stamp + "') AS timestamp(6) with time zone)"

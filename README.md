@@ -1,233 +1,26 @@
-# Lakehouse на Iceberg
+# Lakehouse: миграция Greenplum в Iceberg
 
-## Работающая первая цепочка
+Целевой код демо миграции аналитической цепочки из Greenplum в Lakehouse на VK Data Platform. Iceberg хранит данные в S3, LakeKeeper предоставляет REST-каталог, CedrusData Engine использует SQL-диалект Trino, Spark выполняет бизнес-преобразования, Airflow управляет загрузкой и проверками.
 
-Kafka `oil.events.v1` читают два независимых sink: GP ingestion продолжает работу, Iceberg sink пишет `dlh.bronze.__raw_events`. Доставка raw не означает, что витрина уже пересчитана.
+Кейс — отчёт по добыче нефти из [исходного DWH на Greenplum](https://github.com/ncuho/dwh-greenplum-scripts). Переносятся 20 объектов в слои **Bronze, Silver и Gold** с сохранением бизнес-ключей, истории и логики расчётов. Входная таблица Kafka raw создаётся отдельно.
 
-| DAG | Назначение | Движок | Запуск |
-|---|---|---|---|
-| `oil_layered_migration` | Первичная копия 20 объектов на общем C0, 65 сверок | Cedrus; native Python удерживает GP snapshot | Один раз вручную |
-| `oil_dlh_release` в режиме `catchup` | Догон C0–C1 с overlap и GP-сверкой, 58 проверок | Spark, DQ через Cedrus | Вручную после INITIAL |
-| `oil_dlh_release` | Последующие события raw → Stage/Vault/Kimball, 53 проверки | Spark, DQ через Cedrus; без чтения GP | Каждую минуту |
+Сценарий включает копирование истории из согласованного среза GP, догон накопившихся событий, регулярную обработку и отдельный отчёт Superset. Исходный GP продолжает работать. Полноту переноса, ключи, связи и бизнес-показатели проверяем до принятия результата; общей транзакции на все Iceberg-таблицы нет.
 
-Bronze/Silver обновляются ключевым MERGE, Gold пересчитывается в существующих таблицах атомарным overwrite. Отчёт читает `gold.v_field_production`, публикуемую последней. Имена/UUID/grants и Superset dataset при обновлениях сохраняются. Iceberg не обеспечивает общую транзакцию двадцати таблиц: один writer и последовательные PK/FK/DQ-gates обязательны; подтверждённые изменения компенсируются rollback snapshots. Неизвестные исходы блокируют следующие записи до проверки.
+## Что внутри
 
-Код DAG — в `dags/`. Код копирования — `pipelines/oil_layered_migration/oil_direct_source.py`; обработка и rollback — `oil_dlh_jobs.py` в той же папке. SQL Spark и DQ каждой сущности — `pipelines/oil_dlh_release/<имя_сущности>/`. Терминальный запуск того же кода — `tools/run_oil_dlh/`. Исходные GP-функции остаются в соседнем DWH-репозитории. Вторая цепочка простоев пока продолжает обслуживаться GP.
-
-
-## Текущий сквозной маршрут
-
-Предметные слои: Bronze — Stage и landing Kafka, Silver — Data Vault, Gold — размерная модель и отчёт добычи. INITIAL сохраняет исходные имена таблиц; догон и регулярная обработка используют те же таблицы. Данные и код исходного GP не удаляются.
-
-DAG `oil_layered_migration` управляет всеми 20 объектами, проверяет родителей перед дочерними таблицами, выполняет 65 проверок INITIAL; единый oil_dlh_release в режимах catchup/release выполняет 58/53 проверки и компенсирует подтверждённые записи кандидата при сбое. Неизвестный исход и чужие изменения требуют сверки; публикация Superset остаётся отдельной приёмкой после READY. Код runtime и план — [pipelines/oil_layered_migration](pipelines/oil_layered_migration), DAG — [dags/oil_layered_migration](dags/oil_layered_migration).
-
-Текущий маршрут: [oil_layered_migration](dags/oil_layered_migration), одна task с одним native GP-подключением; отдельный экспортный DAG выведен из эксплуатации.
-
-Догон читает raw с перекрытием по offsets и детерминированной дедупликацией. Повторное чтение не должно создавать дубли; конфликт содержимого блокирует выпуск. Сохранённые альтернативные runtime ниже не являются командой текущего ручного маршрута.
-
-[Архитектура со слоями и моделями](architecture/README.md). Комментарии SQL/Python поясняют назначение, исходную логику GP и целевые отличия. Физические DDL текущего маршрута находятся в [ddl/layers](ddl/layers).
-
-
-## Текущее состояние
-
-Новый проход требует 20 пустых предметных таблиц Bronze/Silver/Gold, ролей и отдельного работающего Kafka raw. Уже принятый INITIAL ради включения catchup/release не очищается. Старый транспортный экспорт удалён, отдельный snapshot-DAG выведен из эксплуатации. `oil_layered_migration` готовится к запуску с `{"mode":"initial"}`; C0 выбирается внутри него. GP, source ingestion и исходные Superset dashboards 3 и 4 работают. Полный предметный перенос запускает оператор; установка кода сама по себе не означает READY.
-
-## Данные и три слоя Greenplum
-
-Один поток `oil.events.v1` содержит четыре типа событий: месторождение, скважина, суточная добыча, простой. Исходный набор: 5 месторождений, 40 скважин, 365 дат 2025 года. Добыча хранится в decimal, время — UTC.
-
-- **Stage / oil_stg:** исходный JSON, координаты Kafka, партии, checkpoints, rejects и аудит объединения партий. Приём сообщения ещё не означает его применение в DDS.
-- **DDS / oil_dds:** event ledger, hubs ключей, links отношений, satellites версий. Используются паттерны DV2 и аудит загрузки; полная enterprise-реализация всех практик Data Vault 2.0 не заявляется.
-- **Marts / oil_mart:** исторические SCD2-измерения, факт скважино-дня, факт интервала простоя, дневные агрегаты и serving views. Это связанные размерные модели с общими измерениями; не произвольное объединение таблиц и не строгая отдельная snowflake-модель.
-
-Продуктивность = SUM(oil_tonnes) / NULLIF(SUM(producing_well_days), 0). Это тонны на активный скважино-день, а не тонны на уникальную скважину за весь период. Факт присоединяется к действовавшей версии измерения, а не к текущему названию/статусу.
-
-## Две цепочки и общие зависимости
-
-```text
-generator → Kafka oil.events.v1 → GP sink
-  → Stage event_log / batch_control / checkpoint
-  → apply_batch → DDS event + hubs / links / satellites
-  → refresh_production → dim_field / dim_well
-  → fact_well_day → agg_field_day → v_field_production
-  → Superset dataset 4 / dashboard 3
-
-та же история + downtime
-  → hub_downtime / link_downtime_well / sat_downtime
-  → refresh_downtime (после refresh_production)
-  → dim_downtime_reason / fact_downtime_interval
-  → agg_field_downtime_day + agg_field_day → v_field_performance
-  → Superset dataset 5 / dashboard 4
-```
-
-Это один источник и два бизнес-отчёта. Stage, apply_batch, производственные измерения/факты и source DAG `oil_gp_release` общие. Изменение добычи или скважины может изменить оба исходных отчёта; изменение простоя — ветку эффективности. Source DAG применяет партии и последовательно вызывает обе функции расчёта.
-
-Целевой Spark SQL переиспользуется как код. Физические baseline/releases двух волн по умолчанию отдельные; публикация одной не переключает другую. Переиспользование общих физических target-измерений требует отдельного согласованного snapshot-контракта.
-
-## Целевая архитектура со Spark
-
-```text
-GP REPEATABLE READ READ ONLY → Python cursor → Cedrus → нужные Iceberg-таблицы
-Spark → SCD2 / факты / агрегаты → DQ → READY
-Kafka → отдельный Iceberg sink → Iceberg raw JSON + offsets
-pinned INITIAL + накопительная дельта → Spark → новый Iceberg release
-release → Cedrus → отдельный Superset dataset / dashboard
-Airflow: порядок и logs; LakeKeeper + CIAM: доступ; Catalog: описания и lineage
-```
-
-Cedrus извлекает историю и выполняет межконтурные сверки. Spark выполняет версии, SCD2, факты и агрегаты. JupyterHub нужен для явного просмотра/исполнения кода; Airflow запускает отдельную Spark-сессию через выделенный MCP/Spark Connect. Исторический Cedrus-only код сохранён, но выбранный новый маршрут бизнес-расчётов — Spark.
-
-Текущий layered-маршрут переносит 6 Stage, 9 Vault и 5 Marts/serving объектов, включая аудиторские поля и сохранённые ключи. GP views материализуются в Iceberg-таблицы. INITIAL копирует все 20 объектов через Cedrus без Spark. Догон и дальнейшую обработку выполняют отдельные Spark DAG в существующих таблицах. GP DISTRIBUTED BY, индексы и PL/pgSQL runtime не копируются в Iceberg буквально: их заменяют файловая организация, отдельные compute engines, DAG и DQ. Прежние альтернативные реализации с проекцией `sat_production_day` сохранены как код, но не исполняются текущим DAG.
-
-## Граница, изменения и публикация
-
-1. Независимый Iceberg sink пишет `bronze.__raw_events`; GP sink, source DAG и producer работают непрерывно.
-2. `oil_layered_migration` с `mode=initial` открывает одно native GP-подключение REPEATABLE READ READ ONLY. Выбирается APPLIED-префикс C0; READY остаются для догона. Stage проецируется на применённую историю, DDS/Marts читаются из того же MVCC snapshot.
-3. Python читает строки через psycopg2; Cedrus пишет их прямо в предметные Iceberg-таблицы. Бизнес-расчёты в INITIAL не пересчитываются. Промежуточного JSON-экспорта в Iceberg нет.
-4. Одна task последовательно исполняет двадцать объектов в порядке зависимостей. Родитель должен пройти VALIDATED до ребёнка. INITIAL включает 65 проверок, catchup — 58, регулярный Spark release — 53: полные строковые SHA-256 signatures, количества/повторы, ключи, FK, SCD2 и покрытие дельты.
-5. Только READY допускает дальнейшую выдачу reader-доступа и отдельную публикацию Superset. Исходная GP-транзакция закрывается при выходе из task.
-6. oil_dlh_release в режиме catchup фиксирует applied C1 тем же способом и применяет предыдущий принятый выпуск + raw с overlap к тем же таблицам. Далее oil_dlh_release работает без чтения GP. Новым target доставкам сначала создаются отрицательные batch_id по partition/offset и batch_control; исходный audit остаётся в INITIAL/raw.
-7. Неизвестные результаты операций и чужие изменения не стираются автоматически. Подтверждённые записи кандидата компенсируются в обратном порядке; источник, raw и принятый INITIAL сохраняются.
-
-Cedrus GP connector в этой версии не наследует native snapshot; поэтому он не используется для SELECT внутри этой GP-транзакции. Консистентность даёт PostgreSQL/GP MVCC, Airflow отвечает за жизненный цикл, зависимости и журнал. Общей ACID-транзакции двадцати Iceberg-таблиц нет. Исторические source_lock/fence/capture механизмы не входят в текущий маршрут.
-
-## Доступы и ответственность сервисов
-
-| Сервис | За что отвечает |
+| Каталог | Содержание |
 |---|---|
-| GP | Исходные приём, история, функции и транзакционные расчёты |
-| Kafka / Connect | Producer → topic; отдельные GP и Iceberg consumers и offset stores |
-| Airflow | Порядок выполнения, run IDs и журнал; не заменяет общую транзакцию Iceberg |
-| Spark | Целевые преобразования и материализация бизнес-слоёв |
-| Cedrus | Чтение GP/Iceberg, историческая загрузка, сверка и SQL для BI |
-| LakeKeeper | Iceberg REST catalog и permissions на реальные table UUID |
-| CIAM | Идентичности людей/сервисов и роли |
-| S3 / Iceberg | Файлы, metadata, snapshots и отдельно подтверждённые releases |
-| Superset | Dataset, charts, dashboard и собственный BI RBAC |
-| Data Catalog | Реальные сущности, описания, owners и сквозной lineage |
-| GitHub | Версионируемый код; не хранилище secrets/runtime evidence |
+| [architecture/](architecture/) | Архитектура целевого контура и модели данных. |
+| [ddl/](ddl/) и [pipelines/production_online/](pipelines/production_online/) | DDL Iceberg, SQL-шаблоны загрузки и проверки по объектам. |
+| [dags/oil_layered_migration/](dags/oil_layered_migration/) | Первичная загрузка истории: Python читает GP, Cedrus записывает Iceberg. |
+| [dags/oil_dlh_release/](dags/oil_dlh_release/) | Догон и регулярная бизнес-обработка через Spark. |
+| [pipelines/oil_layered_migration/](pipelines/oil_layered_migration/) | Исполнение загрузки, работа со snapshots, сверки и восстановление после ошибок. |
+| [pipelines/oil_dlh_release/](pipelines/oil_dlh_release/) | Spark SQL для слоёв, измерений, фактов и агрегатов. |
+| [queries/](queries/) | Запросы для анализа и проверки результатов. |
+| [grants/](grants/), [catalog/](catalog/) и [superset/](superset/) | Права LakeKeeper, метаданные и lineage, определения BI-объектов. |
+| [tools/](tools/) | Конвертер SQL GP в Trino, ручной запуск обработки и сброс результатов демо. |
+| [agents/gp_lakehouse/](agents/gp_lakehouse/) | Инструкции, инструменты и проверенные шаблоны агента миграции для AI Space. |
 
-Инженеру нужен create/write scope; sink получает MODIFY raw; reader — SELECT serving. Старый GRANT GP не превращается автоматически в LakeKeeper assignment. При новой таблице возникает новый UUID и проверяется новое разрешение. В BI отдельно проверяются пользовательская роль и identity SQL-соединения: end-user passthrough не подразумевается.
+Начните с двух DAG и их реализаций в `pipelines/`: так проще проследить путь от исходных строк до отчёта. Внутри папок сущностей есть пояснения и комментарии к коду.
 
-## Организация кода
-
-Каждая сущность — отдельная папка с кодом и README. Не меняйте технические ID connector/consumer group без переноса offsets и прав. Credentials и runtime manifests хранятся вне Git.
-
-## Полный указатель сущностей
-
-Ссылки ведут в папки с автоматически открывающимся описанием; служебные реализации не обозначены как перенесённые бизнес-таблицы.
-
-| Сущность | Назначение |
-|---|---|
-| [access/transport/configure_fence_relay](access/transport/configure_fence_relay/) | Настраивает ограниченный SSH relay от Airflow к Kafka fence с forced command и закреплёнными host keys. |
-| [access/transport/configure_runtime_tls](access/transport/configure_runtime_tls/) | Настраивает HTTPS+Bearer gateway для вызовов runtime к SQL MCP, каталогу и проверке serving-доступов. |
-| [access/verifier/configure_lakekeeper_verifier](access/verifier/configure_lakekeeper_verifier/) | Разворачивает verifier с TLS, авторизацией и ограничением сетевого доступа. Секреты хранятся в Kubernetes Secret. |
-| [access/verifier/lakekeeper_verifier](access/verifier/lakekeeper_verifier/) | Read-only сервис проверки актуальных snapshots, table-level grants и отсутствия избыточного родительского доступа перед публикацией. |
-| [catalog/catalog_launcher_overlay](catalog/catalog_launcher_overlay/) | Расширяет MCP каталога узкими операциями удаления BI-lineage и обновления описаний разрешённых BI-объектов. |
-| [catalog/deploy_catalog_overlay](catalog/deploy_catalog_overlay/) | Подключает versioned overlay к MCP через ConfigMap. После Helm/XaaS reconcile требуется сверка и при необходимости reapply. |
-| [catalog/runtime_catalog](catalog/runtime_catalog/) | Регистрирует только фактически созданный и сверенный release. После подтверждённой публикации обновляет lineage к графикам и описание текущего источника. |
-| [dags/oil_wave2_release](dags/oil_wave2_release/) | Ручной DAG подготовки, сверки и публикации отчётности нефтедобычи. Airflow: `http://10.0.2.13:8080`. Рабочий код: oil_wave2_release.py. |
-| [ddl/ingestion/event_log_wave2](ddl/ingestion/event_log_wave2/) | Отдельная raw Iceberg-таблица Kafka sink. Хранит Kafka-координаты и полный JSON, не изменяя ранее принятый baseline первой цепочки. |
-| [ddl/releases/agg_field_day](ddl/releases/agg_field_day/) | Дневная витрина зерна «месторождение × дата»: тонны, активные скважино-дни и тонны на активный скважино-день. |
-| [ddl/releases/agg_field_downtime_day](ddl/releases/agg_field_downtime_day/) | Дневная сумма часов допустимых непересекающихся простоев по месторождению. |
-| [ddl/releases/baseline_event](ddl/releases/baseline_event/) | Неизменяемая копия полного реестра GP events на INITIAL cut. Один и тот же snapshot используется последующими REFRESH. |
-| [ddl/releases/canonical_event](ddl/releases/canonical_event/) | Убирает дословные повторы документов и разбирает envelope. Конфликтующие ID/версии не замалчиваются: их блокируют DQ gates. |
-| [ddl/releases/canonical_input](ddl/releases/canonical_input/) | Объединяет исходный baseline и raw-события из всех полуоткрытых диапазонов offsets [start,end), зафиксированных в manifest. |
-| [ddl/releases/dim_downtime_reason](ddl/releases/dim_downtime_reason/) | Справочник причин: EQUIPMENT, POWER, PLANNED. Нормализует группировку простоев. |
-| [ddl/releases/dim_field](ddl/releases/dim_field/) | Историческое измерение месторождения. Интервал действия версии — [valid_from, valid_to); удаление сохраняется отдельным признаком. |
-| [ddl/releases/dim_well](ddl/releases/dim_well/) | Историческое измерение скважины, её принадлежности месторождению и статуса. Версия выбирается на производственную дату. |
-| [ddl/releases/fact_downtime_interval](ddl/releases/fact_downtime_interval/) | Факт зерна «интервал простоя». Содержит скважину, месторождение, начало/конец, причину и длительность в часах. |
-| [ddl/releases/fact_well_day](ddl/releases/fact_well_day/) | Факт зерна «скважина × производственная дата». Содержит тонны, статус и версии измерений well/field, действовавшие на дату. |
-| [ddl/releases/field_performance](ddl/releases/field_performance/) | Физическая serving-таблица второй цепочки. Объединяет добычу и простои по дате/месторождению и используется целевым BI. |
-| [ddl/releases/hub_downtime](ddl/releases/hub_downtime/) | Хранит бизнес-идентификатор интервала простоя и детерминированный hash key. Не содержит изменяемых описательных атрибутов. |
-| [ddl/releases/hub_field](ddl/releases/hub_field/) | Хранит бизнес-идентификатор месторождения и детерминированный hash key. Не содержит изменяемых описательных атрибутов. |
-| [ddl/releases/hub_production_day](ddl/releases/hub_production_day/) | Хранит бизнес-идентификатор скважино-дня добычи и детерминированный hash key. Не содержит изменяемых описательных атрибутов. |
-| [ddl/releases/hub_well](ddl/releases/hub_well/) | Хранит бизнес-идентификатор скважины и детерминированный hash key. Не содержит изменяемых описательных атрибутов. |
-| [ddl/releases/link_downtime_well](ddl/releases/link_downtime_well/) | Хранит историческую связь интервала простоя со скважиной по техническим ключам. Изменяемые атрибуты находятся в satellites. |
-| [ddl/releases/link_production_day_well](ddl/releases/link_production_day_well/) | Хранит историческую связь скважино-дня со скважиной по техническим ключам. Изменяемые атрибуты находятся в satellites. |
-| [ddl/releases/link_well_field](ddl/releases/link_well_field/) | Хранит историческую связь скважины с месторождением по техническим ключам. Изменяемые атрибуты находятся в satellites. |
-| [ddl/releases/sat_downtime](ddl/releases/sat_downtime/) | Сохраняет версии атрибутов интервала простоя, event_id, entity_version и операцию U/D. GP хранит типизированный payload и audit-поля; release DLH использует логическую проекцию с исходным document. |
-| [ddl/releases/sat_field](ddl/releases/sat_field/) | Сохраняет версии атрибутов месторождения, event_id, entity_version и операцию U/D. GP хранит типизированный payload и audit-поля; release DLH использует логическую проекцию с исходным document. |
-| [ddl/releases/sat_production_day](ddl/releases/sat_production_day/) | Сохраняет версии атрибутов дневной добычи, event_id, entity_version и операцию U/D. GP хранит типизированный payload и audit-поля; release DLH использует логическую проекцию с исходным document. |
-| [ddl/releases/sat_well](ddl/releases/sat_well/) | Сохраняет версии атрибутов скважины, event_id, entity_version и операцию U/D. GP хранит типизированный payload и audit-поля; release DLH использует логическую проекцию с исходным document. |
-| [ddl/serving/field_performance](ddl/serving/field_performance/) | Физическая serving-таблица второй цепочки. Объединяет добычу и простои по дате/месторождению и используется целевым BI. |
-| [ddl/serving/oil_demo_template](ddl/serving/oil_demo_template/) | Namespace пустой serving-таблицы, используемой до первого подтверждённого выпуска второй цепочки. |
-| [ddl/wave1/schemas/oil_dds](ddl/wave1/schemas/oil_dds/) | Схема интеграции и истории бизнес-сущностей с hubs, links и satellites. |
-| [ddl/wave1/schemas/oil_mart](ddl/wave1/schemas/oil_mart/) | Схема измерений, фактов и serving-агрегатов управленческой отчётности. |
-| [ddl/wave1/schemas/oil_stg](ddl/wave1/schemas/oil_stg/) | Схема приёма неизменённых событий и технического контроля загрузки. |
-| [ddl/wave1/tables/oil_dds/event](ddl/wave1/tables/oil_dds/event/) | Реестр принятых событий DDS. event_id определяет повтор, entity_version задаёт порядок изменений, event_document позволяет сверить историю. |
-| [ddl/wave1/tables/oil_dds/hub_field](ddl/wave1/tables/oil_dds/hub_field/) | Хранит бизнес-идентификатор месторождения и детерминированный hash key. Не содержит изменяемых описательных атрибутов. |
-| [ddl/wave1/tables/oil_dds/hub_production_day](ddl/wave1/tables/oil_dds/hub_production_day/) | Хранит бизнес-идентификатор скважино-дня добычи и детерминированный hash key. Не содержит изменяемых описательных атрибутов. |
-| [ddl/wave1/tables/oil_dds/hub_well](ddl/wave1/tables/oil_dds/hub_well/) | Хранит бизнес-идентификатор скважины и детерминированный hash key. Не содержит изменяемых описательных атрибутов. |
-| [ddl/wave1/tables/oil_dds/link_production_day_well](ddl/wave1/tables/oil_dds/link_production_day_well/) | Хранит историческую связь скважино-дня со скважиной по техническим ключам. Изменяемые атрибуты находятся в satellites. |
-| [ddl/wave1/tables/oil_dds/link_well_field](ddl/wave1/tables/oil_dds/link_well_field/) | Хранит историческую связь скважины с месторождением по техническим ключам. Изменяемые атрибуты находятся в satellites. |
-| [ddl/wave1/tables/oil_dds/sat_daily_production](ddl/wave1/tables/oil_dds/sat_daily_production/) | Сохраняет версии атрибутов дневной добычи, event_id, entity_version и операцию U/D. GP хранит типизированный payload и audit-поля; release DLH использует логическую проекцию с исходным document. |
-| [ddl/wave1/tables/oil_dds/sat_field](ddl/wave1/tables/oil_dds/sat_field/) | Сохраняет версии атрибутов месторождения, event_id, entity_version и операцию U/D. GP хранит типизированный payload и audit-поля; release DLH использует логическую проекцию с исходным document. |
-| [ddl/wave1/tables/oil_dds/sat_well](ddl/wave1/tables/oil_dds/sat_well/) | Сохраняет версии атрибутов скважины, event_id, entity_version и операцию U/D. GP хранит типизированный payload и audit-поля; release DLH использует логическую проекцию с исходным document. |
-| [ddl/wave1/tables/oil_mart/agg_field_day](ddl/wave1/tables/oil_mart/agg_field_day/) | Дневная витрина зерна «месторождение × дата»: тонны, активные скважино-дни и тонны на активный скважино-день. |
-| [ddl/wave1/tables/oil_mart/dim_field](ddl/wave1/tables/oil_mart/dim_field/) | Историческое измерение месторождения. Интервал действия версии — [valid_from, valid_to); удаление сохраняется отдельным признаком. |
-| [ddl/wave1/tables/oil_mart/dim_well](ddl/wave1/tables/oil_mart/dim_well/) | Историческое измерение скважины, её принадлежности месторождению и статуса. Версия выбирается на производственную дату. |
-| [ddl/wave1/tables/oil_mart/fact_well_day](ddl/wave1/tables/oil_mart/fact_well_day/) | Факт зерна «скважина × производственная дата». Содержит тонны, статус и версии измерений well/field, действовавшие на дату. |
-| [ddl/wave1/tables/oil_stg/event_log](ddl/wave1/tables/oil_stg/event_log/) | Принимает исходные JSON-события вместе с topic, partition, offset и ID партии. Сохраняет доставку до применения бизнес-логики. |
-| [deploy/package_runtime](deploy/package_runtime/) | Собирает categorized source в плоский каталог managed Airflow, сохраняя действующие имена импортов. Публикацию и перезапуск сервисов не выполняет. |
-| [grants/lakekeeper/grant_ingestion](grants/lakekeeper/grant_ingestion/) | Назначает отдельной CIAM service identity право modify только на выделенную raw-таблицу Iceberg. |
-| [grants/lakekeeper/grant_serving](grants/lakekeeper/grant_serving/) | Admin-утилита назначения reader SELECT на две serving-таблицы конкретного готового release; проверяет snapshots. Основной операторский способ — LakeKeeper UI. |
-| [grants/lakekeeper/lakekeeper_roles](grants/lakekeeper/lakekeeper_roles/) | Сопоставляет CIAM-backed reader/engineer роли с разрешениями LakeKeeper через штатный Management API. |
-| [migration/fence/fence_controller](migration/fence/fence_controller/) | Адаптер ограниченного SSH-вызова acquire/status/release удалённого контроллера fence. |
-| [migration/fence/fence_probe_socket](migration/fence/fence_probe_socket/) | Проверяет действительность fence через локальный канал управляющей задачи; используется runner перед операциями. |
-| [migration/fence/source_fence](migration/fence/source_fence/) | Прежний вариант с producer fence. Исторический код; текущий native snapshot не блокирует producer, GP sink или source DAG. |
-| [pipelines/bounded_delta](pipelines/bounded_delta/) | Проверяет структуру manifest, идентификаторы таблиц, snapshots и offset-диапазоны; атомарно сохраняет evidence. |
-| [pipelines/cedrus_release_runner](pipelines/cedrus_release_runner/) | Создаёт 21 release-таблицу в порядке зависимостей через Cedrus. Проверяет snapshots, непрерывность offsets и результаты; сохраняет evidence, поддерживает ограниченное восстановление. |
-| [pipelines/dq_sql](pipelines/dq_sql/) | Генерирует read-only проверки конфликтов, ссылочной полноты, SCD, статусов, интервалов, истории событий и двусторонние EXCEPT ALL с GP. |
-| [pipelines/sql_plan](pipelines/sql_plan/) | Генерирует параметризованный CTAS для 11 Vault-проекций и 8 marts. Допускает только проверенное имя нового release namespace. |
-| [publishing/publish_dataset](publishing/publish_dataset/) | Переключает только разрешённый Superset dataset при совпадении прежней привязки. Проверяет новый запрос и выполняет rollback при ошибке. |
-| [publishing/superset_auth](publishing/superset_auth/) | Получает короткий JWT ограниченного publisher по HTTPS, держит его во временном файле и удаляет после операции. |
-| [queries/sandbox/production_report](queries/sandbox/production_report/) | Read-only запрос к опубликованному baseline первой цепочки через Cedrus. Сравнение с GP корректно только на одной границе. |
-| [queries/validation/03_wave1_reconcile](queries/validation/03_wave1_reconcile/) | Read-only SQL-проверки качества, полноты и согласованности результатов двух контуров. |
-| [superset/charts/performance_by_field](superset/charts/performance_by_field/) | График «Показатели по месторождениям». Использует dataset 8; параметры метрик, агрегации, временной гранулярности и отображения заданы в params. |
-| [superset/charts/performance_downtime_total](superset/charts/performance_downtime_total/) | График «Часы простоев». Использует dataset 8; параметры метрик, агрегации, временной гранулярности и отображения заданы в params. |
-| [superset/charts/performance_oil_total](superset/charts/performance_oil_total/) | График «Добыча, т». Использует dataset 8; параметры метрик, агрегации, временной гранулярности и отображения заданы в params. |
-| [superset/charts/performance_trend](superset/charts/performance_trend/) | График «Динамика простоев по месторождениям». Использует dataset 8; параметры метрик, агрегации, временной гранулярности и отображения заданы в params. |
-| [superset/charts/production_active_well_days](superset/charts/production_active_well_days/) | График «Активные скважино-дни». Использует dataset 6; параметры метрик, агрегации, временной гранулярности и отображения заданы в params. |
-| [superset/charts/production_by_field](superset/charts/production_by_field/) | График «Показатели по месторождениям». Использует dataset 6; параметры метрик, агрегации, временной гранулярности и отображения заданы в params. |
-| [superset/charts/production_oil_total](superset/charts/production_oil_total/) | График «Добыча, т». Использует dataset 6; параметры метрик, агрегации, временной гранулярности и отображения заданы в params. |
-| [superset/charts/production_trend](superset/charts/production_trend/) | График «Динамика добычи по месторождениям». Использует dataset 6; параметры метрик, агрегации, временной гранулярности и отображения заданы в params. |
-| [superset/dashboards/performance](superset/dashboards/performance/) | Панель «Эффективность добычи и простои · Lakehouse». Содержит сохранённые графики, layout и фильтры региона/месторождения. Источник определяется соответствующим dataset; публикация release выполняется отдельно. |
-| [superset/dashboards/production](superset/dashboards/production/) | Панель «Добыча по месторождениям · Lakehouse». Содержит сохранённые графики, layout и фильтры региона/месторождения. Источник определяется соответствующим dataset; публикация release выполняется отдельно. |
-| [superset/datasets/performance](superset/datasets/performance/) | Dataset 8 читает oil_demo_template.field_performance. Определяет временное поле, колонки и доступные метрики для графиков. |
-| [superset/datasets/production](superset/datasets/production/) | Dataset 6 читает oil_mart.agg_field_day. Определяет временное поле, колонки и доступные метрики для графиков. |
-
-Смежный репозиторий: [Greenplum](https://github.com/ncuho/dwh-greenplum-scripts).
-
-
-
-## Spark
-
-- [spark/spark_plan](spark/spark_plan/)
-- [spark/sql/agg_field_day](spark/sql/agg_field_day/)
-- [spark/sql/agg_field_downtime_day](spark/sql/agg_field_downtime_day/)
-- [spark/sql/dim_downtime_reason](spark/sql/dim_downtime_reason/)
-- [spark/sql/dim_field](spark/sql/dim_field/)
-- [spark/sql/dim_well](spark/sql/dim_well/)
-- [spark/sql/fact_downtime_interval](spark/sql/fact_downtime_interval/)
-- [spark/sql/fact_well_day](spark/sql/fact_well_day/)
-- [spark/sql/field_performance](spark/sql/field_performance/)
-- [spark/sql/hub_downtime](spark/sql/hub_downtime/)
-- [spark/sql/hub_field](spark/sql/hub_field/)
-- [spark/sql/hub_production_day](spark/sql/hub_production_day/)
-- [spark/sql/hub_well](spark/sql/hub_well/)
-- [spark/sql/link_downtime_well](spark/sql/link_downtime_well/)
-- [spark/sql/link_production_day_well](spark/sql/link_production_day_well/)
-- [spark/sql/link_well_field](spark/sql/link_well_field/)
-- [spark/sql/sat_downtime](spark/sql/sat_downtime/)
-- [spark/sql/sat_field](spark/sql/sat_field/)
-- [spark/sql/sat_production_day](spark/sql/sat_production_day/)
-- [spark/sql/sat_well](spark/sql/sat_well/)
-
-## Online-перенос производственной цепочки
-
-Историческая загрузка читает один native GP snapshot и сразу записывает предметные цели. Исходный поток не останавливается. Регулярный Spark DAG применяет предыдущий принятый выпуск + raw; PK/FK проверяет оркестрация до публикации.
-
-Полный исходный/целевой SQL прокомментирован. В целевом репозитории `pipelines/production_online` содержит 20 отдельных папок: DDL, INITIAL, REFRESH, проверки и назначение каждого объекта. Это принятый бизнес-контракт первой цепочки. Остальные SQL относятся к альтернативным проекциям и следующей волне; не запускайте их поверх этого release. В Git не записываются runtime receipts, snapshots и секреты.
-
-LakeKeeper управляет таблицами и доступом через CIAM identities, Spark выполняет бизнес-проекции, Cedrus переносит историю и обслуживает SQL, Airflow запускает принятую обработку. Kafka Connect сохраняет JSON и координаты, обязательный received_at фиксируется SMT. Kafbat UI наблюдает topics/messages/groups/Connect через приватный SSH-туннель.
+Для запуска нужны настроенные сервисы, подключения и права доступа. В репозитории также сохранены материалы второй цепочки и прежних вариантов миграции; основной маршрут добычи указан выше.
